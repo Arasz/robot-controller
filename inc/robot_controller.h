@@ -11,6 +11,9 @@
 #include <vector>
 #include "tcpserver.h"
 #include "serial_port.h"
+#include "camera_application.h"
+#include "poll_controler.h"
+#include <exception>
 
 namespace mrobot
 {
@@ -18,12 +21,14 @@ namespace mrobot
 	{
 	public:
 		robot_controller();
-		robot_controller(std::string serial_device, int port = 22222);
+		robot_controller(std::string serial_device, std::string camera_script_path="", int port = 22222);
 		virtual ~robot_controller();
 
 		void start_controler();
 
 	private:
+		poll_controler _poll_controller; /// polls used file descriptors for data to read
+
 		tcp_server* _server;
 		int _tcp_buffer_size = 255; /// size of tcp buffer
 		std::vector<char> _tcp_buffer{static_cast<char>(_tcp_buffer_size), 0}; /// buffer for data from server
@@ -35,6 +40,9 @@ namespace mrobot
 		std::vector<char> _serial_buffer{static_cast<char>(_serial_buffer_size), 0};
 		std::function<void(serial_port&, std::vector<char>&)> _serial_data_ready_event_handler;
 		void serial_event_handler(serial_port& server, std::vector<char>& buffer);
+
+		camera_application _camera_app;
+		void start_camera_app(std::string _camera_script_path);
 	};
 }
 

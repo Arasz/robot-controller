@@ -50,9 +50,9 @@ void poll_controler::start_polling()
 }
 void poll_controler::stop_polling()
 {
-	construct_ufds_array();
 	_is_poll_thread_running = false;
 	_poll_thread.join();
+	construct_ufds_array();
 }
 
 void poll_controler::poll_loop()
@@ -75,7 +75,7 @@ void poll_controler::poll_loop()
 void mrobot::poll_controler::poll_file_descriptors()
 {
 	std::cerr << "poll_file_descriptors\n";
-	if (_observed_fd_count > 0)
+	if (_observed_fd_count == _observers.size())
 	{
 		// events_count equal to zero means timeout
 		int events_count = poll(_ufds, _observed_fd_count, _timeout);
