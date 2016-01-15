@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <functional>
 #include "ifile_descriptor_owner.h"
-#include <queue>
+#include <mutex>
 
 namespace mrobot
 {
@@ -34,7 +34,7 @@ namespace mrobot
 	 */
 	class serial_port: public ifile_descriptor_owner
 	{
-		using serial_delegate = std::function<void(serial_port&, std::vector<char>&)>;
+		using serial_delegate = std::function<void()>;
 
 	public:
 
@@ -50,14 +50,11 @@ namespace mrobot
 		void send_data(const std::vector<char>& buffer);
 		int is_data_ready();
 		void receive_data(std::vector<char>& buffer);
-		void set_min_data_to_read(int min_data_to_read_count){_min_data_to_read_count = min_data_to_read_count;};
 
 		void subscribe_data_ready_event(serial_delegate& event_handler);
 		void unsubscribe_data_ready_event();
 
 		bool is_ready(){ return _is_opend&&_is_configured;}
-		bool is_open(){ return _is_opend; }
-		bool is_configured() { return _is_configured; }
 
 		virtual void process_data() override;
 		virtual int get_file_descriptor() override;
@@ -67,9 +64,9 @@ namespace mrobot
 
 		void read_data();
 		const int _data_buffer_size = 60;
-		int _min_data_to_read_count = -1;
 		char _system_interaction_buffer[60];
 		std::vector<char> _received_data_buffer{static_cast<char>(_data_buffer_size), 0}; /// data buffer which received data
+		std::mutex _buffer_mutex;
 
 
 		bool _is_data_ready_event_subscribed = false; /// indicates that data ready event is subscribed
@@ -79,7 +76,6 @@ namespace mrobot
 		bool _is_configured = false;
 
 		const std::string _device; /// path to device
-		//std::mutex _fd_mutex; /// blocks when thread has access to file
 		int _file_descriptor; /// device file descriptor
 	};
 } /* namespace mrobot */

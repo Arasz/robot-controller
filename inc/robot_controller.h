@@ -15,6 +15,7 @@
 #include "poll_controler.h"
 #include <exception>
 #include <iterator>
+#include <atomic>
 
 namespace mrobot
 {
@@ -33,15 +34,17 @@ namespace mrobot
 
 		tcp_server* _server;
 		unsigned int _tcp_buffer_size = 255; /// size of tcp buffer
-		std::vector<char> _tcp_buffer{static_cast<char>(_tcp_buffer_size), 0}; /// buffer for data from server
-		std::function<void(tcp_server&, std::vector<char>&)> _server_data_ready_event_handler;
-		void server_event_handler(tcp_server& server, std::vector<char>& buffer);
+		std::vector<char> _server_buffer{static_cast<char>(_tcp_buffer_size), 0}; /// buffer for data from server
+		std::function<void()> _server_data_ready_event_handler;
+		void server_event_handler();
+		std::atomic<bool> _server_data_ready{false};
 
 		serial_port* _serial_device;
-		unsigned int _serial_buffer_size = 20;
+		unsigned int _serial_buffer_size = 60;
 		std::vector<char> _serial_buffer{static_cast<char>(_serial_buffer_size), 0};
-		std::function<void(serial_port&, std::vector<char>&)> _serial_data_ready_event_handler;
-		void serial_event_handler(serial_port& server, std::vector<char>& buffer);
+		std::function<void()> _serial_data_ready_event_handler;
+		void serial_event_handler();
+		std::atomic<bool> _serial_data_ready{false};
 
 		camera_application _camera_app;
 		void start_camera_app(std::string _camera_script_path);

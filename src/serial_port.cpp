@@ -178,7 +178,7 @@ void serial_port::send_data(const std::vector<char>& buffer)
 
 	// write data to file
 	int written_bytes = write(_file_descriptor, _system_interaction_buffer, length);
-	std::cerr<<"Written bytes: "<<written_bytes<<" length: "<<length<<"\n";
+	std::cerr<<"\nserial_port\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
 
 	if (written_bytes < 0)
 		throw serial_port_exception("Error when sending data.",
@@ -215,7 +215,7 @@ void serial_port::unsubscribe_data_ready_event()
  */
 void serial_port::read_data()
 {
-	//std::cerr<<"Inside serial_port::read_data()\n";
+	std::unique_lock<std::mutex> lock{_buffer_mutex};
 
 	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
 
@@ -251,22 +251,8 @@ int serial_port::is_data_ready()
  */
 void serial_port::receive_data(std::vector<char>& buffer)
 {
-	//std::unique_lock<std::mutex> lock{_fd_mutex};
-
-	int buffer_size = buffer.size();
-
-	std::memset(_system_interaction_buffer, 0, buffer_size);
-
-	int read_bytes = read(_file_descriptor, _system_interaction_buffer, buffer_size);
-
-	if(read_bytes < 0)
-		throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
-
-	buffer.clear();
-	for(int i = 0; i<read_bytes; i++)
-	{
-		buffer.push_back(_system_interaction_buffer[i]);
-	}
+	std::unique_lock<std::mutex> lock{_buffer_mutex};
+	std::swap(buffer, _received_data_buffer);
 }
 
 /**
@@ -277,7 +263,7 @@ void serial_port::process_data()
 	//std::cerr<<"Inside serial process data";
 	read_data();
 	if(_is_data_ready_event_subscribed)
-		_data_ready_event_handler(*this,_received_data_buffer);
+		_data_ready_event_handler();
 }
 
 /**

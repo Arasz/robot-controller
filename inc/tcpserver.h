@@ -31,7 +31,7 @@ namespace mrobot
 
 class tcp_server: public ifile_descriptor_owner
 {
-	using server_delegate = std::function<void(tcp_server&,std::vector<char>&)>;
+	using server_delegate = std::function<void()>;
 
 public:
 
@@ -41,6 +41,7 @@ public:
 
 	//void send_data(char* buffer, int length);
 	void send_data(const std::vector<char>&buffer);
+	void receive_data(std::vector<char>&buffer);
 
 	bool is_connected() const;
 	void reconnect();
@@ -69,7 +70,8 @@ private:
 
 	const size_t _buffer_size = 255; /// communication buffer size
 	char _buffer[255]; /// internal communication buffer
-	std::vector<char> _output_data_buffer{static_cast<char>(255), 0}; ///
+	std::vector<char> _received_data_buffer{static_cast<char>(255), 0}; ///
+	std::mutex _buffer_mutex;
 
 	int _listen_socket_fd = -3; /// server socket file descriptor
 	int _port = 22222; /// port on which server listens

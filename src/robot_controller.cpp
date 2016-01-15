@@ -21,19 +21,18 @@ robot_controller::robot_controller(): robot_controller("/dev/ttyS98")
  */
 robot_controller::robot_controller(std::string serial_device, std::string camera_script_path, int port)
 {
-	using namespace std::placeholders;
 	try
 	{
 		// initialize serial device with default parameters
 		_serial_device = new serial_port(serial_device);
-		_serial_data_ready_event_handler = std::bind(&robot_controller::serial_event_handler,this, _1, _2); // retval: function<void(serial_port&, std::vector<char>&)>
+		_serial_data_ready_event_handler = std::bind(&robot_controller::serial_event_handler,this); // retval: function<void()>
 		_serial_device->subscribe_data_ready_event(_serial_data_ready_event_handler);
 
 		_poll_controller.add(_serial_device);
 
 		// initialize server on default port
 		_server = new tcp_server();
-		_server_data_ready_event_handler = std::bind(&robot_controller::server_event_handler, this, _1, _2);
+		_server_data_ready_event_handler = std::bind(&robot_controller::server_event_handler, this);
 		_server->subscribe_data_ready_event(_server_data_ready_event_handler);
 
 		_poll_controller.add(_server);
@@ -69,9 +68,33 @@ void robot_controller::start_controler()
 
 		while(_server->is_connected())
 		{
+			if(_serial_data_ready.exchange(false))
+			{
+				_serial_device->receive_data(_serial_buffer);
 
+				std::cout<<"Data from serial device: ";
+				for(char&c : _serial_buffer)
+					std::cout<<c;
+				std::cout<<std::endl;
+				std::cout<<_server_buffer.size()<<"\n";
+
+				_server->send_data(_serial_buffer);
+			}
+
+			if(_server_data_ready.exchange(false))
+			{
+				_server->receive_data(_server_buffer);
+
+				std::cout<<"Data from server: ";
+				for(char&c : _server_buffer)
+					std::cout<<c;
+				std::cout<<std::endl;
+				std::cout<<_server_buffer.size()<<"\n";
+
+				_serial_device->send_data(_server_buffer);
+			}
 		}
-		std::cerr<"OUTSIDE WHILE";
+		std::cerr<<"OUTSIDE WHILE\n";
 		_poll_controller.stop_polling();
 		exit(0);
 }
@@ -82,45 +105,14 @@ void robot_controller::start_controler()
  * @param server
  * @param buffer
  */
-void robot_controller::server_event_handler(tcp_server& server,
-		std::vector<char>& buffer)
+void robot_controller::server_event_handler()
 {
-	std::cerr<<"Server event handler\n";
-	_tcp_buffer.clear();
-
-	std::cerr<<"Buffer length: "<<buffer.size()<<"\n";
-
-	std::copy(buffer.begin(), buffer.end(),std::back_inserter(_tcp_buffer));
-
-	std::cout<<std::endl<<"Data read from server: \n";
-	for(char& c : buffer)
-	{
-		std::cout<<c;
-	}
-	std::cout<<"\n";
-
-	_serial_device->send_data(_tcp_buffer);
+	_server_data_ready.store(true);
 }
 
-void robot_controller::serial_event_handler(serial_port& server,
-		std::vector<char>& buffer)
+void robot_controller::serial_event_handler()
 {
-	_serial_buffer.clear();
-
-
-	std::cerr<<"Serial event handler\n";
-	std::cerr<<"Buffer length: "<<buffer.size()<<"\n";
-
-	std::copy(buffer.begin(), buffer.end(), std::back_inserter(_serial_buffer));
-
-	std::cout<<std::endl<<"Data read from serial_port: \n";
-	for(char& c : buffer)
-	{
-		std::cout<<c;
-	}
-	std::cout<<"\n";
-
-	_server->send_data(_serial_buffer);
+	_serial_data_ready.store(true);
 }
 
 /**

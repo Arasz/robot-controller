@@ -114,7 +114,7 @@ void tcp_server::process_data()
 	//std::cerr<<"Inside server process data";
 	read_data();
 	if(_is_data_ready_event_subscirbed)
-		_data_ready_handler(*this, _output_data_buffer);
+		_data_ready_handler();
 }
 
 /**
@@ -143,7 +143,6 @@ bool tcp_server::is_file_descriptor_ready()
  */
 void tcp_server::send_data(const std::vector<char>& buffer)
 {
-	//std::cerr<"\n tcp_server::send_data()\n";
 	int length = buffer.size();
 	char data[length];
 
@@ -153,14 +152,14 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 		data[i++] = c;
 	}
 
-	//std::cerr<<"\nClient fd: "<<_client_socket_fd<<"\n";
-	int byte_count = send(_client_socket_fd, data, length, 0);
+	int written_bytes = send(_client_socket_fd, data, length, 0);
+	std::cerr<<"\nserver\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
 
 	//TODO Change this behavior
-	if(byte_count < 0)
+	if(written_bytes < 0)
 		throw tcp_server_exception{"Error when sending data", strerror(errno)};
-	if(byte_count < length)
-		std::cerr<<"tcp_server:: Less data written than expected. Length: "<<length<<" Bytes count: "<<byte_count<<"\n";
+	if(written_bytes < length)
+		std::cerr<<"tcp_server:: Less data written than expected. Length: "<<length<<" Bytes count: "<<written_bytes<<"\n";
 }
 
 
@@ -204,6 +203,15 @@ void tcp_server::accept_connection()
 	_is_connected = true;
 
 }
+/**
+ * @breif Swaps received data from input buffer to given buffer
+ * @param buffer buffer to which data will be copied
+ */
+void tcp_server::receive_data(std::vector<char>& buffer)
+{
+	std::unique_lock<std::mutex>(_buffer_mutex);
+	std::swap(buffer, _received_data_buffer);
+}
 
 /**
  * @brief Read data from client and write to class buffer
@@ -225,10 +233,10 @@ void tcp_server::read_data()
 		throw tcp_server_exception{"Error reading data from socket", strerror(errno)};
 
 	// copy data from internal buffer to output buffer
-	_output_data_buffer.clear();
+	_received_data_buffer.clear();
 	for(int i = 0; i<bytes_count; i++)
 	{
-		_output_data_buffer.push_back(_buffer[i]);
+		_received_data_buffer.push_back(_buffer[i]);
 	}
 }
 /**

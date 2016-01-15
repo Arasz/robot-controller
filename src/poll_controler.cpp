@@ -51,7 +51,6 @@ void poll_controler::stop_polling()
 {
 	_is_poll_thread_running = false;
 	_poll_thread.join();
-	construct_ufds_array();
 }
 
 void poll_controler::poll_loop()
@@ -85,8 +84,7 @@ void mrobot::poll_controler::poll_file_descriptors()
 			{ "Error when polling file descriptors.", strerror(errno) };
 		else
 		{
-			for (unsigned int i = 0; (i < _observed_fd_count) && (events_count > 0);
-					i++)
+			for (unsigned int i = 0; (i < _observed_fd_count) && (events_count > 0); i++)
 			{
 				if (_ufds[i].revents & POLLIN)
 				{
