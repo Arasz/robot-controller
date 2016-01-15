@@ -111,7 +111,7 @@ void tcp_server::reconnect()
  */
 void tcp_server::process_data()
 {
-	//std::cerr<<"update called\n";
+	//std::cerr<<"Inside server process data";
 	read_data();
 	if(_is_data_ready_event_subscirbed)
 		_data_ready_handler(*this, _output_data_buffer);
@@ -143,9 +143,8 @@ bool tcp_server::is_file_descriptor_ready()
  */
 void tcp_server::send_data(const std::vector<char>& buffer)
 {
+	//std::cerr<"\n tcp_server::send_data()\n";
 	int length = buffer.size();
-
-	//
 	char data[length];
 
 	int i = 0;
@@ -154,14 +153,14 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 		data[i++] = c;
 	}
 
-	// send can send less data than we want in nonblocking mode
+	//std::cerr<<"\nClient fd: "<<_client_socket_fd<<"\n";
 	int byte_count = send(_client_socket_fd, data, length, 0);
 
 	//TODO Change this behavior
-	if(byte_count < length)
-		std::cerr<<"Less data written than expected.";
 	if(byte_count < 0)
 		throw tcp_server_exception{"Error when sending data", strerror(errno)};
+	if(byte_count < length)
+		std::cerr<<"tcp_server:: Less data written than expected. Length: "<<length<<" Bytes count: "<<byte_count<<"\n";
 }
 
 

@@ -14,6 +14,8 @@ namespace mrobot
 serial_port::serial_port(std::string device, baudrate_option baudrate, data_bits_option data_bits,
 		parity_option parity, stop_bits_option stop_bits): _device(device)
 {
+	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
+
 	open_device(device);
 	configure(baudrate, data_bits, parity, stop_bits);
 }
@@ -88,7 +90,7 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
 	 // no line processing - raw input
 	 // echo off, echo newline off, canonical mode off,
 	 // extended input processing off, signal chars off
-	 config.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+	config.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
 
 
 	 // configure parity
@@ -162,18 +164,21 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
 void serial_port::send_data(const std::vector<char>& buffer)
 {
 	//std::unique_lock<std::mutex> lock{_fd_mutex};
+	//std::cerr<"\n serial_device::send_data()\n";
 
 	int length = buffer.size();
-	char out_buffer[length];
+
+	std::memset(_system_interaction_buffer, 0,length);
 
 	int i = 0;
 	for (const char&c : buffer)
 	{
-		out_buffer[i++] = c;
+		_system_interaction_buffer[i++] = c;
 	}
 
 	// write data to file
-	int written_bytes = write(_file_descriptor, out_buffer, length);
+	int written_bytes = write(_file_descriptor, _system_interaction_buffer, length);
+	std::cerr<<"Written bytes: "<<written_bytes<<" length: "<<length<<"\n";
 
 	if (written_bytes < 0)
 		throw serial_port_exception("Error when sending data.",
@@ -210,12 +215,11 @@ void serial_port::unsubscribe_data_ready_event()
  */
 void serial_port::read_data()
 {
-	//std::unique_lock<std::mutex> lock{_fd_mutex};
+	//std::cerr<<"Inside serial_port::read_data()\n";
 
-	char read_buffer[_data_buffer_size];
-	std::memset(read_buffer, 0, _data_buffer_size);
+	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
 
-	int read_bytes = read(_file_descriptor, read_buffer, _data_buffer_size);
+	int read_bytes = read(_file_descriptor, _system_interaction_buffer, _data_buffer_size);
 
 	if(read_bytes < 0)
 		throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
@@ -223,7 +227,7 @@ void serial_port::read_data()
 	_received_data_buffer.clear();
 	for(int i = 0; i<read_bytes; i++)
 	{
-		_received_data_buffer.push_back(read_buffer[i]);
+		_received_data_buffer.push_back(_system_interaction_buffer[i]);
 	}
 }
 
@@ -234,11 +238,11 @@ void serial_port::read_data()
 int serial_port::is_data_ready()
 {
 	// data ready to read
-	int bytes = 0;
+	//int bytes = 0;
 
-	ioctl(_file_descriptor, FIONREAD, &bytes); // check number of bytes ready to read
+	//ioctl(_file_descriptor, FIONREAD, &bytes); // check number of bytes ready to read
 
-	return bytes;
+	return _received_data_buffer.size();
 }
 
 /**
@@ -250,10 +254,10 @@ void serial_port::receive_data(std::vector<char>& buffer)
 	//std::unique_lock<std::mutex> lock{_fd_mutex};
 
 	int buffer_size = buffer.size();
-	char read_buffer[buffer_size];
-	std::memset(read_buffer, 0, buffer_size);
 
-	int read_bytes = read(_file_descriptor, read_buffer, buffer_size);
+	std::memset(_system_interaction_buffer, 0, buffer_size);
+
+	int read_bytes = read(_file_descriptor, _system_interaction_buffer, buffer_size);
 
 	if(read_bytes < 0)
 		throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
@@ -261,7 +265,7 @@ void serial_port::receive_data(std::vector<char>& buffer)
 	buffer.clear();
 	for(int i = 0; i<read_bytes; i++)
 	{
-		buffer.push_back(read_buffer[i]);
+		buffer.push_back(_system_interaction_buffer[i]);
 	}
 }
 
@@ -270,6 +274,7 @@ void serial_port::receive_data(std::vector<char>& buffer)
  */
 void serial_port::process_data()
 {
+	//std::cerr<<"Inside serial process data";
 	read_data();
 	if(_is_data_ready_event_subscribed)
 		_data_ready_event_handler(*this,_received_data_buffer);

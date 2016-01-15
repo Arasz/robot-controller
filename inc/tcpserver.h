@@ -25,6 +25,7 @@
 #include <sys/poll.h>
 #include <mutex>
 
+// TODO Move client socket descriptor to his own class
 namespace mrobot
 {
 

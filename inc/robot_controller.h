@@ -14,6 +14,7 @@
 #include "camera_application.h"
 #include "poll_controler.h"
 #include <exception>
+#include <iterator>
 
 namespace mrobot
 {
@@ -21,6 +22,7 @@ namespace mrobot
 	{
 	public:
 		robot_controller();
+		robot_controller(const robot_controller& ) =delete;// copy constructor deleted
 		robot_controller(std::string serial_device, std::string camera_script_path="", int port = 22222);
 		virtual ~robot_controller();
 

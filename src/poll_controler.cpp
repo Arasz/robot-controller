@@ -45,21 +45,21 @@ void poll_controler::start_polling()
 {
 	construct_ufds_array();
 	_is_poll_thread_running = true;
-	_poll_thread = std::thread
-	{ &poll_controler::poll_loop, this };
+	_poll_thread = std::thread{ &poll_controler::poll_loop, this };
 }
 void poll_controler::stop_polling()
 {
 	_is_poll_thread_running = false;
 	_poll_thread.join();
+	construct_ufds_array();
 }
 
 void poll_controler::poll_loop()
 {
-	std::cerr << "poll_loop\n";
+	//std::cerr << "poll_loop\n";
 	while (_is_poll_thread_running)
 	{
-		std::cerr << "insight loop...\n";
+		//std::cerr << "insight loop...\n";
 		std::this_thread::sleep_for(_poll_interval);
 		try
 		{
@@ -73,12 +73,12 @@ void poll_controler::poll_loop()
 
 void mrobot::poll_controler::poll_file_descriptors()
 {
-	std::cerr << "poll_file_descriptors\n";
+	//std::cerr << "poll_file_descriptors\n"<<_observed_fd_count<<" == "<<_observers.size()<<"\n";
 	if (_observed_fd_count == _observers.size())
 	{
 		// events_count equal to zero means timeout
 		int events_count = poll(_ufds, _observed_fd_count, _timeout);
-		std::cerr << "after poll\n";
+		//std::cerr << "after poll. Events count: "<<events_count<<"\n";
 
 		if (events_count < 0)
 			throw poll_exception
@@ -88,14 +88,11 @@ void mrobot::poll_controler::poll_file_descriptors()
 			for (unsigned int i = 0; (i < _observed_fd_count) && (events_count > 0);
 					i++)
 			{
-				if (_ufds[i].events & POLLIN)
+				if (_ufds[i].revents & POLLIN)
 				{
 					// by construction element _ufds[i] has this same fd as _observers[i]
-					std::cerr << "data ready to read, File descriptors: "<<_ufds[i].fd<<"=="<<_observers[i]->get_file_descriptor()<<"\n";
-					//auto observer = std::find_if(_observers.begin(), _observers.end(),
-							//[&](ifile_descriptor_owner* owner){return _ufds[i].fd == owner->get_file_descriptor();} );
+					//std::cerr << "data ready to read, File descriptors: "<<_ufds[i].fd<<"=="<<_observers[i]->get_file_descriptor()<<"\n";
 					_observers[i]->process_data();
-					//observer->process_data();
 					events_count--;
 				}
 			}
@@ -115,7 +112,7 @@ void mrobot::poll_controler::construct_ufds_array()
 
 	_observed_fd_count = _observers.size();
 
-	std::cerr << "Observers.size(): " << _observed_fd_count << "\n";
+	//std::cerr << " Inside construct_ufds_array: Observers.size(): " << _observed_fd_count << "\n";
 
 	if (_ufds != nullptr)
 		delete[] _ufds;
@@ -127,7 +124,7 @@ void mrobot::poll_controler::construct_ufds_array()
 	{
 		while(!observer->is_file_descriptor_ready());
 		_ufds[i].fd = observer->get_file_descriptor();
-		std::cerr << "fd: " << observer->get_file_descriptor() << "\n";
+		//std::cerr << "fd: " << observer->get_file_descriptor() << "\n";
 		_ufds[i++].events = POLLIN;
 	}
 

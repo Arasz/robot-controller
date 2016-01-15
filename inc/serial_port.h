@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <functional>
 #include "ifile_descriptor_owner.h"
+#include <queue>
 
 namespace mrobot
 {
@@ -66,7 +67,8 @@ namespace mrobot
 
 		void read_data();
 		const int _data_buffer_size = 60;
-		int _min_data_to_read_count = -1; ///
+		int _min_data_to_read_count = -1;
+		char _system_interaction_buffer[60];
 		std::vector<char> _received_data_buffer{static_cast<char>(_data_buffer_size), 0}; /// data buffer which received data
 
 

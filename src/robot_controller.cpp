@@ -9,7 +9,7 @@
 
 namespace mrobot
 {
-robot_controller::robot_controller(): robot_controller("/dev/AM0")
+robot_controller::robot_controller(): robot_controller("/dev/ttyS98")
 {
 }
 
@@ -29,16 +29,14 @@ robot_controller::robot_controller(std::string serial_device, std::string camera
 		_serial_data_ready_event_handler = std::bind(&robot_controller::serial_event_handler,this, _1, _2); // retval: function<void(serial_port&, std::vector<char>&)>
 		_serial_device->subscribe_data_ready_event(_serial_data_ready_event_handler);
 
-		if(_serial_device->is_ready())
-			_poll_controller.add(_serial_device);
+		_poll_controller.add(_serial_device);
 
 		// initialize server on default port
 		_server = new tcp_server();
 		_server_data_ready_event_handler = std::bind(&robot_controller::server_event_handler, this, _1, _2);
 		_server->subscribe_data_ready_event(_server_data_ready_event_handler);
 
-		if(_server->is_connected())
-			_poll_controller.add(_server);
+		_poll_controller.add(_server);
 
 		// turn on camera app if path is given
 		if(!camera_script_path.empty())
@@ -73,9 +71,9 @@ void robot_controller::start_controler()
 		{
 
 		}
-
+		std::cerr<"OUTSIDE WHILE";
 		_poll_controller.stop_polling();
-		_server->reconnect();
+		exit(0);
 }
 
 /**
@@ -87,20 +85,41 @@ void robot_controller::start_controler()
 void robot_controller::server_event_handler(tcp_server& server,
 		std::vector<char>& buffer)
 {
-	if(buffer.size()<=_tcp_buffer_size)
+	std::cerr<<"Server event handler\n";
+	_tcp_buffer.clear();
+
+	std::cerr<<"Buffer length: "<<buffer.size()<<"\n";
+
+	std::copy(buffer.begin(), buffer.end(),std::back_inserter(_tcp_buffer));
+
+	std::cout<<std::endl<<"Data read from server: \n";
+	for(char& c : buffer)
 	{
-		std::copy(buffer.begin(), buffer.end(),_tcp_buffer.begin());
+		std::cout<<c;
 	}
+	std::cout<<"\n";
+
 	_serial_device->send_data(_tcp_buffer);
 }
 
 void robot_controller::serial_event_handler(serial_port& server,
 		std::vector<char>& buffer)
 {
-	if(buffer.size()<=_serial_buffer_size)
+	_serial_buffer.clear();
+
+
+	std::cerr<<"Serial event handler\n";
+	std::cerr<<"Buffer length: "<<buffer.size()<<"\n";
+
+	std::copy(buffer.begin(), buffer.end(), std::back_inserter(_serial_buffer));
+
+	std::cout<<std::endl<<"Data read from serial_port: \n";
+	for(char& c : buffer)
 	{
-		std::copy(buffer.begin(), buffer.end(),_serial_buffer.begin());
+		std::cout<<c;
 	}
+	std::cout<<"\n";
+
 	_server->send_data(_serial_buffer);
 }
 
