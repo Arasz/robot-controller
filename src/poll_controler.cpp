@@ -33,12 +33,12 @@ poll_controler::~poll_controler()
 
 void poll_controler::add(ifile_descriptor_owner* observer)
 {
-	_observers[observer->get_file_descriptor()] = observer;
+	_observers.push_back(observer);
 }
 
 void poll_controler::remove(ifile_descriptor_owner* observer)
 {
-	_observers.erase(observer->get_file_descriptor());
+	_observers.erase(std::remove(_observers.begin(), _observers.end(), observer));
 }
 
 void poll_controler::start_polling()
@@ -52,7 +52,6 @@ void poll_controler::stop_polling()
 {
 	_is_poll_thread_running = false;
 	_poll_thread.join();
-	construct_ufds_array();
 }
 
 void poll_controler::poll_loop()
@@ -86,20 +85,30 @@ void mrobot::poll_controler::poll_file_descriptors()
 			{ "Error when polling file descriptors.", strerror(errno) };
 		else
 		{
-			for (int i = 0; (i < _observed_fd_count) && (events_count > 0);
+			for (unsigned int i = 0; (i < _observed_fd_count) && (events_count > 0);
 					i++)
 			{
 				if (_ufds[i].events & POLLIN)
 				{
-					std::cerr << "data ready to read\n";
-					_observers[_ufds[i].fd]->process_data();
+					// by construction element _ufds[i] has this same fd as _observers[i]
+					std::cerr << "data ready to read, File descriptors: "<<_ufds[i].fd<<"=="<<_observers[i]->get_file_descriptor()<<"\n";
+					//auto observer = std::find_if(_observers.begin(), _observers.end(),
+							//[&](ifile_descriptor_owner* owner){return _ufds[i].fd == owner->get_file_descriptor();} );
+					_observers[i]->process_data();
+					//observer->process_data();
 					events_count--;
 				}
 			}
 		}
 	}
+	else
+	{
+		construct_ufds_array();
+	}
 }
-
+/**
+ * @brief Constructs array off fd structures used for polling. This method blocks when fd is not ready.
+ */
 void mrobot::poll_controler::construct_ufds_array()
 {
 	//TODO trivial version of construction. Can be done better.
@@ -116,8 +125,9 @@ void mrobot::poll_controler::construct_ufds_array()
 	int i = 0;
 	for (auto observer : _observers)
 	{
-		_ufds[i].fd = observer.first;
-		std::cerr << "fd: " << observer.first << "\n";
+		while(!observer->is_file_descriptor_ready());
+		_ufds[i].fd = observer->get_file_descriptor();
+		std::cerr << "fd: " << observer->get_file_descriptor() << "\n";
 		_ufds[i++].events = POLLIN;
 	}
 

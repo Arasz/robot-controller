@@ -49,6 +49,7 @@ public:
 
 	virtual void process_data() override;
 	virtual int get_file_descriptor() override;
+	virtual bool is_file_descriptor_ready() override;
 
 
 private:

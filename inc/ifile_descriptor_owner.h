@@ -18,6 +18,7 @@ namespace mrobot
 	public:
 		virtual void process_data()=0; /// process data which arrived to file
 		virtual int get_file_descriptor()=0; /// gets file descriptor
+		virtual bool is_file_descriptor_ready()=0; /// checks if file descriptor is acquired by class
 		virtual ~ifile_descriptor_owner() {};
 	};
 }

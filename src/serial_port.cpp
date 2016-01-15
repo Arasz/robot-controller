@@ -265,6 +265,9 @@ void serial_port::receive_data(std::vector<char>& buffer)
 	}
 }
 
+/**
+ * @brief Called when data is ready to process
+ */
 void serial_port::process_data()
 {
 	read_data();
@@ -272,11 +275,23 @@ void serial_port::process_data()
 		_data_ready_event_handler(*this,_received_data_buffer);
 }
 
+/**
+ * @brief Gets file descriptor
+ * @return file descriptor
+ */
 int serial_port::get_file_descriptor()
 {
 	return _file_descriptor;
 }
-
+/**
+ * @brief Checks if file descriptor is acquired and can be used
+ * @return true if file descriptor is ready to use
+ */
+bool serial_port::is_file_descriptor_ready()
+{
+	return is_ready();
+}
 
 } /* namespace mrobot */
+
 

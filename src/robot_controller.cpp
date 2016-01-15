@@ -67,8 +67,6 @@ robot_controller::~robot_controller()
 
 void robot_controller::start_controler()
 {
-	if(_server->is_connected()&&_serial_device->is_ready())
-	{
 		_poll_controller.start_polling();
 
 		while(_server->is_connected())
@@ -78,18 +76,32 @@ void robot_controller::start_controler()
 
 		_poll_controller.stop_polling();
 		_server->reconnect();
-	}
 }
 
-
+/**
+ * @brief Handles server data ready event
+ * In this version only sends command to microcontroller
+ * @param server
+ * @param buffer
+ */
 void robot_controller::server_event_handler(tcp_server& server,
 		std::vector<char>& buffer)
 {
+	if(buffer.size()<=_tcp_buffer_size)
+	{
+		std::copy(buffer.begin(), buffer.end(),_tcp_buffer.begin());
+	}
+	_serial_device->send_data(_tcp_buffer);
 }
 
 void robot_controller::serial_event_handler(serial_port& server,
 		std::vector<char>& buffer)
 {
+	if(buffer.size()<=_serial_buffer_size)
+	{
+		std::copy(buffer.begin(), buffer.end(),_serial_buffer.begin());
+	}
+	_server->send_data(_serial_buffer);
 }
 
 /**

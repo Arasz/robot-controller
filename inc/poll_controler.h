@@ -15,6 +15,7 @@
 #include <sys/poll.h>
 #include <cstring>
 #include <map>
+#include <vector>
 #include <exception>
 #include <errno.h>
 #include <ifile_descriptor_owner.h>
@@ -43,13 +44,13 @@ private:
 	void poll_file_descriptors();
 	void construct_ufds_array();
 
-	std::map<int, ifile_descriptor_owner*> _observers;
+	std::vector<ifile_descriptor_owner*> _observers;
 
 	std::thread _poll_thread;
 
 	bool _is_poll_thread_running = false;
 
-	int _observed_fd_count = 0; /// amount of sockets which are polled by poll()
+	unsigned int _observed_fd_count = 0; /// amount of sockets which are polled by poll()
 
 	bool _are_poll_objects_initialized = false;
 
@@ -60,6 +61,8 @@ private:
 
 	pollfd* _ufds = nullptr; /// array of structures representing file descriptors used in file descriptors polling
 };
+
+
 
 class poll_exception: std::exception
 {

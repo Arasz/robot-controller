@@ -10,7 +10,7 @@
 namespace mrobot
 {
 /**
- * @brief Construct server object listening on default port
+ * @brief Constructs server object listening on default port
  */
 tcp_server::tcp_server(): tcp_server(22222)
 {
@@ -18,7 +18,7 @@ tcp_server::tcp_server(): tcp_server(22222)
 }
 
 /**
- * @brief Construct server object listening on given port
+ * @brief Constructs server object listening on given port
  * @param port port on which server is listening for connection
  */
 tcp_server::tcp_server(int port):_port(port)
@@ -37,7 +37,7 @@ tcp_server::~tcp_server()
 }
 
 /**
- * @brief Create new TCP/IP server socket
+ * @brief Creates new TCP/IP server socket
  *
  * @throws tcp_server_exception
  */
@@ -106,16 +106,33 @@ void tcp_server::reconnect()
 	accept_connection.detach();
 }
 
+/**
+ * Called when data is ready to process
+ */
 void tcp_server::process_data()
 {
-	std::cerr<<"update called\n";
+	//std::cerr<<"update called\n";
 	read_data();
 	if(_is_data_ready_event_subscirbed)
 		_data_ready_handler(*this, _output_data_buffer);
 }
+
+/**
+ * @brief Gets file descriptor
+ * @return file descriptor
+ */
 int tcp_server::get_file_descriptor()
 {
 	return _client_socket_fd;
+}
+
+/**
+ * @brief Checks if file descriptor is acquired and can be used
+ * @return true if file descriptor is ready to use
+ */
+bool tcp_server::is_file_descriptor_ready()
+{
+	return is_connected();
 }
 
 /**
@@ -188,7 +205,6 @@ void tcp_server::accept_connection()
 	_is_connected = true;
 
 }
-
 
 /**
  * @brief Read data from client and write to class buffer
