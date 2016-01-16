@@ -8,13 +8,13 @@
 #ifndef INC_CAMERA_APPLICATION_H_
 #define INC_CAMERA_APPLICATION_H_
 
-#include "unistd.h"
+#include <sys/unistd.h>
 #include <stdexcept>
 #include <string>
 #include <errno.h>
 #include <cstring>
 #include <sys/prctl.h>
-#include <signal.h>
+#include <sys/signal.h>
 
 namespace mrobot
 {

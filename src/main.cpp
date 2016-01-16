@@ -36,17 +36,17 @@ int main(int argc, char* argv[])
 			}
 			if(std::string{argv[i]} == "-t")
 			{
-				serial_device = std::string{argv[i++]};
+				serial_device = std::string{argv[++i]};
 			}
 			if(std::string{argv[i]} == "-s")
 			{
-				script_path = std::string{argv[i++]};
+				script_path = std::string{argv[++i]};
 			}
 			if(std::string{argv[i]} == "-p")
 			{
 				try
 				{
-					port = std::stoi(std::string{argv[i++]});
+					port = std::stoi(std::string{argv[++i]});
 				}
 				catch(std::invalid_argument& ex)
 				{
