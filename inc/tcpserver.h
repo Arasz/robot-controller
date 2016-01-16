@@ -24,6 +24,7 @@
 #include "ifile_descriptor_owner.h"
 #include <sys/poll.h>
 #include <mutex>
+#include "file_descriptor_handler.h"
 
 // TODO Move client socket descriptor to his own class
 namespace mrobot
@@ -50,7 +51,7 @@ public:
 	void unsubscribe_data_ready_event();
 
 	virtual void process_data() override;
-	virtual int get_file_descriptor() override;
+	virtual file_descriptor_handler& get_file_descriptor_handler() override;
 	virtual bool is_file_descriptor_ready() override;
 
 
@@ -73,11 +74,11 @@ private:
 	std::vector<char> _received_data_buffer{static_cast<char>(255), 0}; ///
 	std::mutex _buffer_mutex;
 
-	int _listen_socket_fd = -3; /// server socket file descriptor
+	file_descriptor_handler _listen_socket{-3}; /// server socket file descriptor
 	int _port = 22222; /// port on which server listens
 
 	sockaddr_in _client_addres; /// connected client address
-	int _client_socket_fd = -3; /// socket used for communication which connected client
+	file_descriptor_handler _client_socket{-3}; /// socket used for communication which connected client
 
 };
 

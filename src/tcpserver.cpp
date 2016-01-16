@@ -32,8 +32,8 @@ tcp_server::tcp_server(int port):_port(port)
 
 tcp_server::~tcp_server()
 {
-	close(_listen_socket_fd);
-	close(_client_socket_fd);
+	_listen_socket.close_file_descriptor();
+	_client_socket.close_file_descriptor();
 }
 
 /**
@@ -45,9 +45,9 @@ void tcp_server::create_socket()
 {
 	// create ipv4 no blocking socket, with full duplex byte stream communication
 	// protocol is chosen by OS
-	_listen_socket_fd = socket(PF_INET, SOCK_STREAM, 0); // | SOCK_NONBLOCK, 0);
+	_listen_socket = socket(PF_INET, SOCK_STREAM, 0); // | SOCK_NONBLOCK, 0);
 
-	if(_listen_socket_fd<0)
+	if(_listen_socket.get_file_descriptor()<0)
 		throw tcp_server_exception{"Error when opening socket.", strerror(errno)};
 }
 
@@ -71,7 +71,7 @@ void tcp_server::bind_socket(int port)
 	// set ip address of the host to the address of machine on which server is running
 	socket_addres.sin_addr.s_addr = INADDR_ANY;
 
-	int bind_ret_val = bind(_listen_socket_fd, reinterpret_cast<sockaddr*>(&socket_addres), sizeof(socket_addres));
+	int bind_ret_val = bind(_listen_socket.get_file_descriptor(), reinterpret_cast<sockaddr*>(&socket_addres), sizeof(socket_addres));
 
 	if(bind_ret_val < 0 )
 		throw tcp_server_exception{"Binding socket to address failed.", strerror(errno)};
@@ -84,9 +84,9 @@ void tcp_server::bind_socket(int port)
  */
 void tcp_server::listen_for_connection()
 {
-	if(_listen_socket_fd <= 0)
+	if(_listen_socket.get_file_descriptor() <= 0)
 		throw tcp_server_exception{"Socket isn't valid. Before listening create socket.", strerror(errno)};
-	listen(_listen_socket_fd, 5);
+	listen(_listen_socket.get_file_descriptor(), 5);
 }
 
 /**
@@ -94,16 +94,18 @@ void tcp_server::listen_for_connection()
  */
 void tcp_server::reconnect()
 {
-	if(_client_socket_fd > 0)
+	if(_client_socket.get_file_descriptor() > 0)
 	{
-		close(_client_socket_fd);
+		_client_socket.close_file_descriptor();
 		_is_connected = false;
 	}
+	// accept connection synchronously
+	accept_connection();
 
 	// wait for connection in another thread
-	std::thread accept_connection(&tcp_server::accept_connection, this);
+	//std::thread accept_connection(&tcp_server::accept_connection, this);
 	// detach thread - it will run in background without synchronization with main thread
-	accept_connection.detach();
+	//accept_connection.detach();
 }
 
 /**
@@ -121,9 +123,9 @@ void tcp_server::process_data()
  * @brief Gets file descriptor
  * @return file descriptor
  */
-int tcp_server::get_file_descriptor()
+file_descriptor_handler& tcp_server::get_file_descriptor_handler()
 {
-	return _client_socket_fd;
+	return _client_socket;
 }
 
 /**
@@ -143,6 +145,8 @@ bool tcp_server::is_file_descriptor_ready()
  */
 void tcp_server::send_data(const std::vector<char>& buffer)
 {
+	std::unique_lock<std::mutex>{_client_socket.get_mutex()};
+
 	int length = buffer.size();
 	char data[length];
 
@@ -152,7 +156,7 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 		data[i++] = c;
 	}
 
-	int written_bytes = send(_client_socket_fd, data, length, 0);
+	int written_bytes = send(_client_socket.get_file_descriptor(), data, length, 0);
 	std::cerr<<"\nserver\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
 
 	//TODO Change this behavior
@@ -192,13 +196,15 @@ void tcp_server::unsubscribe_data_ready_event()
  */
 void tcp_server::accept_connection()
 {
+	std::unique_lock<std::mutex>{_listen_socket.get_mutex()};
+
 	unsigned int client_address_size = sizeof(_client_addres);
 	std::memset(&_client_addres, 0, client_address_size);
 
 
-	_client_socket_fd = accept(_listen_socket_fd, reinterpret_cast<sockaddr*>(&_client_addres), &client_address_size);
+	_client_socket = accept(_listen_socket.get_file_descriptor(), reinterpret_cast<sockaddr*>(&_client_addres), &client_address_size);
 
-	if(_client_socket_fd < 0)
+	if(_client_socket.get_file_descriptor() < 0)
 		throw tcp_server_exception("Error when accepting connection.", strerror(errno));
 	_is_connected = true;
 
@@ -220,9 +226,11 @@ void tcp_server::receive_data(std::vector<char>& buffer)
  */
 void tcp_server::read_data()
 {
+	std::unique_lock<std::mutex>{_client_socket.get_mutex()};
+
 	std::memset(_buffer, 0, _buffer_size);
 
-	int bytes_count = recv(_client_socket_fd, _buffer, _buffer_size, 0);
+	int bytes_count = recv(_client_socket.get_file_descriptor(), _buffer, _buffer_size, 0);
 	//TODO Think about what we can do if connection with client is broken
 	if(bytes_count == 0)
 	{

@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <functional>
 #include "ifile_descriptor_owner.h"
+#include "file_descriptor_handler.h"
 #include <mutex>
 
 namespace mrobot
@@ -57,7 +58,7 @@ namespace mrobot
 		bool is_ready(){ return _is_opend&&_is_configured;}
 
 		virtual void process_data() override;
-		virtual int get_file_descriptor() override;
+		virtual file_descriptor_handler& get_file_descriptor_handler() override;
 		virtual bool is_file_descriptor_ready() override;
 
 	private:
@@ -76,7 +77,7 @@ namespace mrobot
 		bool _is_configured = false;
 
 		const std::string _device; /// path to device
-		int _file_descriptor; /// device file descriptor
+		file_descriptor_handler _serial_device; /// device file descriptor
 	};
 } /* namespace mrobot */
 

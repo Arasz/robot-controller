@@ -24,6 +24,16 @@ int main(int argc, char* argv[])
 
 		for(int i = 1; i < argc; i++)
 		{
+			if(std::string{argv[i]} == "-h")
+			{
+				std::cout<<"Usage:\n"
+						<<"-t path - path to tty device (serial device)\n"
+						<<"-s path - path to camera script file\n"
+						<<"-p port - port on which server will listen\n"
+						<<"example: robot_controller -t /dev/ttyS98 -s /home/usr/Desktop/camera_script.sh -p 22222"
+						<<std::endl;
+				std::exit(0);
+			}
 			if(std::string{argv[i]} == "-t")
 			{
 				serial_device = std::string{argv[i++]};

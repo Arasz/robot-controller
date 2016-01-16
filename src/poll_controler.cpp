@@ -121,7 +121,7 @@ void mrobot::poll_controler::construct_ufds_array()
 	for (auto observer : _observers)
 	{
 		while(!observer->is_file_descriptor_ready());
-		_ufds[i].fd = observer->get_file_descriptor();
+		_ufds[i].fd = observer->get_file_descriptor_handler().get_file_descriptor();
 		//std::cerr << "fd: " << observer->get_file_descriptor() << "\n";
 		_ufds[i++].events = POLLIN;
 	}

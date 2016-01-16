@@ -22,7 +22,7 @@ serial_port::serial_port(std::string device, baudrate_option baudrate, data_bits
 
 serial_port::~serial_port()
 {
-	close(_file_descriptor);
+	_serial_device.close_file_descriptor();
 }
 
 /**
@@ -39,12 +39,12 @@ void serial_port::open_device(std::string device)
 	 */
 	int file_flags =  O_RDWR | O_NOCTTY | O_NDELAY;
 
-	_file_descriptor = open(_device.c_str(), file_flags);
-	if(_file_descriptor == -1)
+	_serial_device = open(_device.c_str(), file_flags);
+	if(_serial_device.get_file_descriptor() == -1)
 	{
 		throw serial_port_exception{"System function open() can't open file.", strerror(errno)};
 	}
-	fcntl(_file_descriptor, F_SETFL, 0); // enable blocking behavior
+	fcntl(_serial_device.get_file_descriptor(), F_SETFL, 0); // enable blocking behavior
 	_is_opend = true;
 }
 /**
@@ -64,13 +64,13 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
 	termios config;
 
 	// check if file descriptor is pointing to tty device
-	if(!isatty(_file_descriptor))
+	if(!isatty(_serial_device.get_file_descriptor()))
 	{
 		throw serial_port_exception("Opened file isn't tty device", strerror(errno));
 	}
 
 	// get current configuration of the serial interface
-	if(tcgetattr(_file_descriptor, &config)<0)
+	if(tcgetattr(_serial_device.get_file_descriptor(), &config)<0)
 	{
 		throw serial_port_exception("Cannot get serial interface configuration", strerror(errno));
 	}
@@ -142,7 +142,7 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
 	 }
 
 	 // apply the configuration ( flush buffers and apply )
-	 if(tcsetattr(_file_descriptor, TCSAFLUSH, &config) < 0)
+	 if(tcsetattr(_serial_device.get_file_descriptor(), TCSAFLUSH, &config) < 0)
 	 {
 		 throw serial_port_exception("Cannot apply new configuration.", strerror(errno));
 	 }
@@ -163,7 +163,7 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
  */
 void serial_port::send_data(const std::vector<char>& buffer)
 {
-	//std::unique_lock<std::mutex> lock{_fd_mutex};
+	std::unique_lock<std::mutex> lock{_serial_device.get_mutex()};
 	//std::cerr<"\n serial_device::send_data()\n";
 
 	int length = buffer.size();
@@ -177,7 +177,7 @@ void serial_port::send_data(const std::vector<char>& buffer)
 	}
 
 	// write data to file
-	int written_bytes = write(_file_descriptor, _system_interaction_buffer, length);
+	int written_bytes = write(_serial_device.get_file_descriptor(), _system_interaction_buffer, length);
 	std::cerr<<"\nserial_port\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
 
 	if (written_bytes < 0)
@@ -216,10 +216,11 @@ void serial_port::unsubscribe_data_ready_event()
 void serial_port::read_data()
 {
 	std::unique_lock<std::mutex> lock{_buffer_mutex};
+	std::unique_lock<std::mutex> fd_lock{_serial_device.get_mutex()};
 
 	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
 
-	int read_bytes = read(_file_descriptor, _system_interaction_buffer, _data_buffer_size);
+	int read_bytes = read(_serial_device.get_file_descriptor(), _system_interaction_buffer, _data_buffer_size);
 
 	if(read_bytes < 0)
 		throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
@@ -270,9 +271,9 @@ void serial_port::process_data()
  * @brief Gets file descriptor
  * @return file descriptor
  */
-int serial_port::get_file_descriptor()
+file_descriptor_handler& serial_port::get_file_descriptor_handler()
 {
-	return _file_descriptor;
+	return _serial_device;
 }
 /**
  * @brief Checks if file descriptor is acquired and can be used
