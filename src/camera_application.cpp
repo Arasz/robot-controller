@@ -53,7 +53,7 @@ void camera_application::run_script(string script_path)
 
 		if(result < 0)
 		{
-			string message = "Error when executing script:\n" + string{strerror(errno)} +"\n";
+			string message = "Error when executing script: " + string{strerror(errno)} +"\n";
 			throw runtime_error{message};
 		}
 

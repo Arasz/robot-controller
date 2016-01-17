@@ -14,15 +14,13 @@ namespace mrobot
 serial_port::serial_port(std::string device, baudrate_option baudrate, data_bits_option data_bits,
 		parity_option parity, stop_bits_option stop_bits): _device(device)
 {
-	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
-
 	open_device(device);
 	configure(baudrate, data_bits, parity, stop_bits);
 }
 
 serial_port::~serial_port()
 {
-	_serial_device.close_file_descriptor();
+	//_serial_device.close_file_descriptor();
 }
 
 /**
@@ -169,7 +167,7 @@ void serial_port::send_data(const std::vector<char>& buffer)
 
 		int length = buffer.size();
 
-		std::memset(_system_interaction_buffer, 0,length);
+		//std::memset(_system_interaction_buffer, 0,length);
 
 		int i = 0;
 		for (const char&c : buffer)
@@ -224,9 +222,9 @@ void serial_port::read_data()
 		std::unique_lock<std::mutex> fd_lock{_serial_device.get_mutex(), std::defer_lock};
 		std::lock(lock, fd_lock); //  lock both mutexes
 
-		std::memset(_system_interaction_buffer, 0, _data_buffer_size);
+		//std::memset(_system_interaction_buffer, 0, _buffer_size);
 
-		int read_bytes = read(_serial_device.get_file_descriptor(), _system_interaction_buffer, _data_buffer_size);
+		int read_bytes = read(_serial_device.get_file_descriptor(), _system_interaction_buffer, _buffer_size);
 
 		if(read_bytes < 0)
 			throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};

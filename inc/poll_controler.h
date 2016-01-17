@@ -25,6 +25,9 @@ namespace mrobot
 {
 using milliseconds = std::chrono::milliseconds;
 
+/**
+ * @brief Stores list of file descriptor owners and informs them when data is ready to read
+ */
 class poll_controler
 {
 public:
@@ -44,22 +47,19 @@ private:
 	void poll_file_descriptors();
 	void construct_ufds_array();
 
-	std::vector<ifile_descriptor_owner*> _observers;
+	std::vector<ifile_descriptor_owner*> _observers{};
 
-	std::thread _poll_thread;
+	std::thread _poll_thread{};
 
-	bool _is_poll_thread_running = false;
+	bool _is_poll_thread_running{false};
 
-	unsigned int _observed_fd_count = 0; /// amount of sockets which are polled by poll()
+	unsigned int _ufds_size{}; /// amount of sockets which are polled by poll()
 
-	bool _are_poll_objects_initialized = false;
+	int _timeout{-1}; /// time in milliseconds after which poll function() terminates (if negative function never terminates)
 
-	int _timeout = -1; /// time in milliseconds after which poll function() terminates (if negative function never terminates)
+	milliseconds _poll_interval{ 500 }; /// time after which polling thread will poll file descriptors
 
-	milliseconds _poll_interval
-	{ 500 }; /// time after which polling thread will poll file descriptors
-
-	pollfd* _ufds = nullptr; /// array of structures representing file descriptors used in file descriptors polling
+	pollfd* _ufds{nullptr}; /// array of structures representing file descriptors used in file descriptors polling
 };
 
 
@@ -78,8 +78,8 @@ public:
 		return result.c_str();
 	}
 private:
-	const std::string _message;
-	const std::string _error_description;
+	const std::string _message{};
+	const std::string _error_description{};
 };
 
 }

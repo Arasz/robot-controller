@@ -18,13 +18,12 @@
 #include <functional>
 #include <cstring>
 #include <vector>
-#include <array>
-#include <thread>
+//#include <thread>
 #include <errno.h>
 #include "ifile_descriptor_owner.h"
-#include <sys/poll.h>
 #include <mutex>
 #include "file_descriptor_handler.h"
+
 
 // TODO Move client socket descriptor to his own class
 namespace mrobot
@@ -70,8 +69,8 @@ private:
 	bool _is_connected = false; /// indicates if client is connected to the server
 
 	const size_t _buffer_size = 255; /// communication buffer size
-	char _buffer[255]; /// internal communication buffer
-	std::vector<char> _received_data_buffer{static_cast<char>(255), 0}; ///
+	char _system_interaction_buffer[255]{}; /// data buffer which will be passed to system functions
+	std::vector<char> _received_data_buffer; ///
 	std::mutex _buffer_mutex;
 
 	file_descriptor_handler _listen_socket{-3}; /// server socket file descriptor

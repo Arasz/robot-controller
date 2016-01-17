@@ -32,8 +32,9 @@ tcp_server::tcp_server(int port):_port(port)
 
 tcp_server::~tcp_server()
 {
-	_listen_socket.close_file_descriptor();
-	_client_socket.close_file_descriptor();
+	// fd will be closed when on fd_handler destruction
+	//_listen_socket.close_file_descriptor();
+	//_client_socket.close_file_descriptor();
 }
 
 /**
@@ -107,6 +108,26 @@ void tcp_server::reconnect()
 	//accept_connection.detach();
 }
 
+
+/**
+ * @brief Accept connection from client and creates new socket for communication
+ * @throws tcp_server_exception
+ */
+void tcp_server::accept_connection()
+{
+	std::unique_lock<std::mutex>{_listen_socket.get_mutex()};
+
+	unsigned int client_address_size = sizeof(_client_addres);
+	std::memset(&_client_addres, 0, client_address_size);
+
+
+	_client_socket = accept(_listen_socket.get_file_descriptor(), reinterpret_cast<sockaddr*>(&_client_addres), &client_address_size);
+
+	if(_client_socket.get_file_descriptor() < 0)
+		throw tcp_server_exception("Error when accepting connection.", strerror(errno));
+	_is_connected = true;
+}
+
 /**
  * Called when data is ready to process
  */
@@ -148,15 +169,14 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 		std::unique_lock<std::mutex>{_client_socket.get_mutex()};
 
 		int length = buffer.size();
-		char data[length];
 
 		int i = 0;
 		for(const char& c:buffer)
 		{
-			data[i++] = c;
+			_system_interaction_buffer[i++] = c;
 		}
 
-		int written_bytes = send(_client_socket.get_file_descriptor(), data, length, 0);
+		int written_bytes = send(_client_socket.get_file_descriptor(), _system_interaction_buffer, length, 0);
 
 		//TODO Change this behavior
 		if(written_bytes < 0)
@@ -191,25 +211,6 @@ void tcp_server::unsubscribe_data_ready_event()
 }
 
 /**
- * @brief Accept connection from client and creates new socket for communication
- * @throws tcp_server_exception
- */
-void tcp_server::accept_connection()
-{
-	std::unique_lock<std::mutex>{_listen_socket.get_mutex()};
-
-	unsigned int client_address_size = sizeof(_client_addres);
-	std::memset(&_client_addres, 0, client_address_size);
-
-
-	_client_socket = accept(_listen_socket.get_file_descriptor(), reinterpret_cast<sockaddr*>(&_client_addres), &client_address_size);
-
-	if(_client_socket.get_file_descriptor() < 0)
-		throw tcp_server_exception("Error when accepting connection.", strerror(errno));
-	_is_connected = true;
-
-}
-/**
  * @breif Swaps received data from input buffer to given buffer
  * @param buffer buffer to which data will be copied
  */
@@ -234,15 +235,18 @@ void tcp_server::read_data()
 		std::unique_lock<std::mutex> buffer_lock{_buffer_mutex, std::defer_lock};
 		std::lock(fd_lock, buffer_lock);
 
-		std::memset(_buffer, 0, _buffer_size);
+		//std::memset(_system_interaction_buffer, 0, _buffer_size);
 
-		int bytes_count = recv(_client_socket.get_file_descriptor(), _buffer, _buffer_size, 0);
+		int bytes_count = recv(_client_socket.get_file_descriptor(), _system_interaction_buffer, _buffer_size, 0);
 		//TODO Think about what we can do if connection with client is broken
 		if(bytes_count == 0)
 		{
 			std::clog<<"Client was disconnected.\n";
 			_is_connected = false;
-			//return;
+			std::clog<<"Listening for connection...\n";
+			reconnect();
+			std::clog<<"Connected\n";
+			return;
 		}
 		if(bytes_count < 0)
 			throw tcp_server_exception{"Error reading data from socket", strerror(errno)};
@@ -251,7 +255,7 @@ void tcp_server::read_data()
 		//_received_data_buffer.clear();
 		for(int i = 0; i<bytes_count; i++)
 		{
-			_received_data_buffer.push_back(_buffer[i]);
+			_received_data_buffer.push_back(_system_interaction_buffer[i]);
 		}
 	}
 }

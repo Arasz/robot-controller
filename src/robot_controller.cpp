@@ -69,33 +69,28 @@ void robot_controller::start_controler()
 			if(_serial_data_ready.exchange(false))
 			{
 				_serial_device->receive_data(_serial_buffer);
-/*
-				std::cout<<"Data from serial device: ";
+//
+				std::cout<<"Data from serial device ("<<_serial_buffer.size()<<")\n";
 				for(char&c : _serial_buffer)
 					std::cout<<c;
-				std::cout<<std::endl;
-				std::cout<<_server_buffer.size()<<"\n";
-*/
+				std::cout<<"\n";//
+
 				_server->send_data(_serial_buffer);
 			}
 
 			if(_server_data_ready.exchange(false))
 			{
 				_server->receive_data(_server_buffer);
-/*
-				std::cout<<"Data from server: ";
+//
+				std::cout<<"Data from server device ("<<_server_buffer.size()<<")\n";
 				for(char&c : _server_buffer)
 					std::cout<<c;
-				std::cout<<std::endl;
-				std::cout<<_server_buffer.size()<<"\n";
-*/
+				std::cout<<"\n";//
+
 				_serial_device->send_data(_server_buffer);
 			}
 		}
 		_poll_controller.stop_polling();
-		std::cout<<"Listening for connection...\n";
-		_server->reconnect();
-		std::cout<<"Connected\n";
 
 }
 

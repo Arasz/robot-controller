@@ -64,9 +64,9 @@ namespace mrobot
 	private:
 
 		void read_data();
-		const int _data_buffer_size = 255;
-		char _system_interaction_buffer[255];
-		std::vector<char> _received_data_buffer{static_cast<char>(_data_buffer_size), 0}; /// data buffer which received data
+		const int _buffer_size = 255; /// data buffer size
+		char _system_interaction_buffer[255]{}; /// data buffer which will be passed to system functions
+		std::vector<char> _received_data_buffer; /// data buffer whith received data
 		std::mutex _buffer_mutex;
 
 
