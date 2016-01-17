@@ -89,7 +89,6 @@ void mrobot::poll_controler::poll_file_descriptors()
 				if (_ufds[i].revents & POLLIN)
 				{
 					// by construction element _ufds[i] has this same fd as _observers[i]
-					//std::cerr << "data ready to read, File descriptors: "<<_ufds[i].fd<<"=="<<_observers[i]->get_file_descriptor()<<"\n";
 					_observers[i]->process_data();
 					events_count--;
 				}

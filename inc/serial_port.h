@@ -52,7 +52,7 @@ namespace mrobot
 		int is_data_ready();
 		void receive_data(std::vector<char>& buffer);
 
-		void subscribe_data_ready_event(serial_delegate& event_handler);
+		void subscribe_data_ready_event(serial_delegate&& event_handler);
 		void unsubscribe_data_ready_event();
 
 		bool is_ready(){ return _is_opend&&_is_configured;}
@@ -64,8 +64,8 @@ namespace mrobot
 	private:
 
 		void read_data();
-		const int _data_buffer_size = 60;
-		char _system_interaction_buffer[60];
+		const int _data_buffer_size = 255;
+		char _system_interaction_buffer[255];
 		std::vector<char> _received_data_buffer{static_cast<char>(_data_buffer_size), 0}; /// data buffer which received data
 		std::mutex _buffer_mutex;
 

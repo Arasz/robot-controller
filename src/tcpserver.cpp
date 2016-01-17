@@ -61,7 +61,6 @@ void tcp_server::bind_socket(int port)
 	sockaddr_in socket_addres;
 
 	// set all values in buffer to a zero
-	//bzero(reinterpret_cast<char*>(&socket_addres), sizeof(socket_addres));
 	std::memset(&socket_addres, 0, sizeof(socket_addres));
 
 	// set address family for ipv4
@@ -113,7 +112,6 @@ void tcp_server::reconnect()
  */
 void tcp_server::process_data()
 {
-	//std::cerr<<"Inside server process data";
 	read_data();
 	if(_is_data_ready_event_subscirbed)
 		_data_ready_handler();
@@ -145,25 +143,27 @@ bool tcp_server::is_file_descriptor_ready()
  */
 void tcp_server::send_data(const std::vector<char>& buffer)
 {
-	std::unique_lock<std::mutex>{_client_socket.get_mutex()};
-
-	int length = buffer.size();
-	char data[length];
-
-	int i = 0;
-	for(const char& c:buffer)
+	if(_is_connected)
 	{
-		data[i++] = c;
+		std::unique_lock<std::mutex>{_client_socket.get_mutex()};
+
+		int length = buffer.size();
+		char data[length];
+
+		int i = 0;
+		for(const char& c:buffer)
+		{
+			data[i++] = c;
+		}
+
+		int written_bytes = send(_client_socket.get_file_descriptor(), data, length, 0);
+
+		//TODO Change this behavior
+		if(written_bytes < 0)
+			throw tcp_server_exception{"Error when sending data", strerror(errno)};
+		if(written_bytes < length)
+			std::clog<<"tcp_server:: Less data written than expected. Length: "<<length<<" Bytes count: "<<written_bytes<<"\n";
 	}
-
-	int written_bytes = send(_client_socket.get_file_descriptor(), data, length, 0);
-	std::cerr<<"\nserver\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
-
-	//TODO Change this behavior
-	if(written_bytes < 0)
-		throw tcp_server_exception{"Error when sending data", strerror(errno)};
-	if(written_bytes < length)
-		std::cerr<<"tcp_server:: Less data written than expected. Length: "<<length<<" Bytes count: "<<written_bytes<<"\n";
 }
 
 
@@ -171,12 +171,12 @@ void tcp_server::send_data(const std::vector<char>& buffer)
  * @brief Assigns event handler called on data ready event
  * @param data_ready_handler function object with event handler
  */
-void tcp_server::subscribe_data_ready_event(const server_delegate& data_ready_handler)
+void tcp_server::subscribe_data_ready_event(server_delegate&& data_ready_handler)
 {
 	if(_is_data_ready_event_subscirbed == false)
 	{
+		std::swap(_data_ready_handler, data_ready_handler);
 		_is_data_ready_event_subscirbed = true;
-		_data_ready_handler = data_ready_handler;
 	}
 }
 /**
@@ -217,6 +217,7 @@ void tcp_server::receive_data(std::vector<char>& buffer)
 {
 	std::unique_lock<std::mutex>(_buffer_mutex);
 	std::swap(buffer, _received_data_buffer);
+	_received_data_buffer.clear();
 }
 
 /**
@@ -226,25 +227,32 @@ void tcp_server::receive_data(std::vector<char>& buffer)
  */
 void tcp_server::read_data()
 {
-	std::unique_lock<std::mutex>{_client_socket.get_mutex()};
-
-	std::memset(_buffer, 0, _buffer_size);
-
-	int bytes_count = recv(_client_socket.get_file_descriptor(), _buffer, _buffer_size, 0);
-	//TODO Think about what we can do if connection with client is broken
-	if(bytes_count == 0)
+	if(_is_connected)
 	{
-		std::cerr<<"Client was disconnected.\n";
-		_is_connected = false;
-	}
-	if(bytes_count < 0)
-		throw tcp_server_exception{"Error reading data from socket", strerror(errno)};
+		// don't lock yet, wait until we can lock both mutexes to not cause deadlock
+		std::unique_lock<std::mutex> fd_lock{_client_socket.get_mutex(), std::defer_lock};
+		std::unique_lock<std::mutex> buffer_lock{_buffer_mutex, std::defer_lock};
+		std::lock(fd_lock, buffer_lock);
 
-	// copy data from internal buffer to output buffer
-	_received_data_buffer.clear();
-	for(int i = 0; i<bytes_count; i++)
-	{
-		_received_data_buffer.push_back(_buffer[i]);
+		std::memset(_buffer, 0, _buffer_size);
+
+		int bytes_count = recv(_client_socket.get_file_descriptor(), _buffer, _buffer_size, 0);
+		//TODO Think about what we can do if connection with client is broken
+		if(bytes_count == 0)
+		{
+			std::clog<<"Client was disconnected.\n";
+			_is_connected = false;
+			//return;
+		}
+		if(bytes_count < 0)
+			throw tcp_server_exception{"Error reading data from socket", strerror(errno)};
+
+		// copy data from internal buffer to output buffer
+		//_received_data_buffer.clear();
+		for(int i = 0; i<bytes_count; i++)
+		{
+			_received_data_buffer.push_back(_buffer[i]);
+		}
 	}
 }
 /**

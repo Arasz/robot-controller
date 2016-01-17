@@ -35,14 +35,12 @@ namespace mrobot
 		tcp_server* _server;
 		unsigned int _tcp_buffer_size = 255; /// size of tcp buffer
 		std::vector<char> _server_buffer{static_cast<char>(_tcp_buffer_size), 0}; /// buffer for data from server
-		std::function<void()> _server_data_ready_event_handler;
 		void server_event_handler();
 		std::atomic<bool> _server_data_ready{false};
 
 		serial_port* _serial_device;
-		unsigned int _serial_buffer_size = 60;
+		unsigned int _serial_buffer_size = 255;
 		std::vector<char> _serial_buffer{static_cast<char>(_serial_buffer_size), 0};
-		std::function<void()> _serial_data_ready_event_handler;
 		void serial_event_handler();
 		std::atomic<bool> _serial_data_ready{false};
 

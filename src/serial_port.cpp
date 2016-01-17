@@ -163,29 +163,30 @@ void serial_port::configure(baudrate_option baudrate, data_bits_option data_bits
  */
 void serial_port::send_data(const std::vector<char>& buffer)
 {
-	std::unique_lock<std::mutex> lock{_serial_device.get_mutex()};
-	//std::cerr<"\n serial_device::send_data()\n";
-
-	int length = buffer.size();
-
-	std::memset(_system_interaction_buffer, 0,length);
-
-	int i = 0;
-	for (const char&c : buffer)
+	if(is_ready())
 	{
-		_system_interaction_buffer[i++] = c;
+		std::unique_lock<std::mutex> lock{_serial_device.get_mutex()}; // lock mutex
+
+		int length = buffer.size();
+
+		std::memset(_system_interaction_buffer, 0,length);
+
+		int i = 0;
+		for (const char&c : buffer)
+		{
+			_system_interaction_buffer[i++] = c;
+		}
+
+		// write data to file
+		int written_bytes = write(_serial_device.get_file_descriptor(), _system_interaction_buffer, length);
+
+		if (written_bytes < 0)
+			throw serial_port_exception("Error when sending data.",
+					strerror(errno));
+		else if (written_bytes < length)
+			throw serial_port_exception("Less elements written than expected.",
+					strerror(errno));
 	}
-
-	// write data to file
-	int written_bytes = write(_serial_device.get_file_descriptor(), _system_interaction_buffer, length);
-	std::cerr<<"\nserial_port\nWritten bytes: "<<written_bytes<<" length: "<<length<<"\n";
-
-	if (written_bytes < 0)
-		throw serial_port_exception("Error when sending data.",
-				strerror(errno));
-	else if (written_bytes < length)
-		throw serial_port_exception("Less elements written than expected.",
-				strerror(errno));
 }
 
 
@@ -193,11 +194,12 @@ void serial_port::send_data(const std::vector<char>& buffer)
  * @brief Subscribe data ready event
  * @param event_handler function which will handle data ready event
  */
-void serial_port::subscribe_data_ready_event(serial_delegate& event_handler)
+void serial_port::subscribe_data_ready_event(serial_delegate&& event_handler)
 {
 	if(!_is_data_ready_event_subscribed)
 	{
-		_data_ready_event_handler = event_handler;
+		 //_data_ready_event_handler=std::move(event_handler);
+		std::swap(event_handler, _data_ready_event_handler);
 		_is_data_ready_event_subscribed = true;
 	}
 }
@@ -215,20 +217,24 @@ void serial_port::unsubscribe_data_ready_event()
  */
 void serial_port::read_data()
 {
-	std::unique_lock<std::mutex> lock{_buffer_mutex};
-	std::unique_lock<std::mutex> fd_lock{_serial_device.get_mutex()};
-
-	std::memset(_system_interaction_buffer, 0, _data_buffer_size);
-
-	int read_bytes = read(_serial_device.get_file_descriptor(), _system_interaction_buffer, _data_buffer_size);
-
-	if(read_bytes < 0)
-		throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
-
-	_received_data_buffer.clear();
-	for(int i = 0; i<read_bytes; i++)
+	if(is_ready())
 	{
-		_received_data_buffer.push_back(_system_interaction_buffer[i]);
+		// don't lock yet, wait until we can lock both mutexes to not cause deadlock
+		std::unique_lock<std::mutex> lock{_buffer_mutex, std::defer_lock};
+		std::unique_lock<std::mutex> fd_lock{_serial_device.get_mutex(), std::defer_lock};
+		std::lock(lock, fd_lock); //  lock both mutexes
+
+		std::memset(_system_interaction_buffer, 0, _data_buffer_size);
+
+		int read_bytes = read(_serial_device.get_file_descriptor(), _system_interaction_buffer, _data_buffer_size);
+
+		if(read_bytes < 0)
+			throw serial_port_exception{"Error when reading data from serial port", strerror(errno)};
+
+		for(int i = 0; i<read_bytes; i++)
+		{
+			_received_data_buffer.push_back(_system_interaction_buffer[i]);
+		}
 	}
 }
 
@@ -254,6 +260,7 @@ void serial_port::receive_data(std::vector<char>& buffer)
 {
 	std::unique_lock<std::mutex> lock{_buffer_mutex};
 	std::swap(buffer, _received_data_buffer);
+	_received_data_buffer.clear();
 }
 
 /**
@@ -261,7 +268,6 @@ void serial_port::receive_data(std::vector<char>& buffer)
  */
 void serial_port::process_data()
 {
-	//std::cerr<<"Inside serial process data";
 	read_data();
 	if(_is_data_ready_event_subscribed)
 		_data_ready_event_handler();

@@ -46,16 +46,14 @@ void camera_application::run_script(string script_path)
 
 		// run camera script inside this process
 
-		char* const argv[]{NULL}; // input arguments to script
-
 		// script starts
-		int result = execv(script_path.c_str(), argv);
+		int result = execl(script_path.c_str(), "camera_script", (char*)NULL);
 
 		// on succes execv dose not return
 
 		if(result < 0)
 		{
-			string message = "Error when executing script: " + string{strerror(errno)} +"\n";
+			string message = "Error when executing script:\n" + string{strerror(errno)} +"\n";
 			throw runtime_error{message};
 		}
 

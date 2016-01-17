@@ -25,15 +25,13 @@ robot_controller::robot_controller(std::string serial_device, std::string camera
 	{
 		// initialize serial device with default parameters
 		_serial_device = new serial_port(serial_device);
-		_serial_data_ready_event_handler = std::bind(&robot_controller::serial_event_handler,this); // retval: function<void()>
-		_serial_device->subscribe_data_ready_event(_serial_data_ready_event_handler);
+		_serial_device->subscribe_data_ready_event(std::bind(&robot_controller::serial_event_handler,this));
 
 		_poll_controller.add(_serial_device);
 
 		// initialize server on default port
 		_server = new tcp_server();
-		_server_data_ready_event_handler = std::bind(&robot_controller::server_event_handler, this);
-		_server->subscribe_data_ready_event(_server_data_ready_event_handler);
+		_server->subscribe_data_ready_event(std::bind(&robot_controller::server_event_handler, this));
 
 		_poll_controller.add(_server);
 
@@ -71,32 +69,34 @@ void robot_controller::start_controler()
 			if(_serial_data_ready.exchange(false))
 			{
 				_serial_device->receive_data(_serial_buffer);
-
+/*
 				std::cout<<"Data from serial device: ";
 				for(char&c : _serial_buffer)
 					std::cout<<c;
 				std::cout<<std::endl;
 				std::cout<<_server_buffer.size()<<"\n";
-
+*/
 				_server->send_data(_serial_buffer);
 			}
 
 			if(_server_data_ready.exchange(false))
 			{
 				_server->receive_data(_server_buffer);
-
+/*
 				std::cout<<"Data from server: ";
 				for(char&c : _server_buffer)
 					std::cout<<c;
 				std::cout<<std::endl;
 				std::cout<<_server_buffer.size()<<"\n";
-
+*/
 				_serial_device->send_data(_server_buffer);
 			}
 		}
-		std::cerr<<"OUTSIDE WHILE\n";
 		_poll_controller.stop_polling();
-		exit(0);
+		std::cout<<"Listening for connection...\n";
+		_server->reconnect();
+		std::cout<<"Connected\n";
+
 }
 
 /**

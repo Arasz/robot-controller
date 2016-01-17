@@ -47,7 +47,7 @@ public:
 	bool is_connected() const;
 	void reconnect();
 
-	void subscribe_data_ready_event(const server_delegate& data_ready_handler);
+	void subscribe_data_ready_event(server_delegate&& data_ready_handler);
 	void unsubscribe_data_ready_event();
 
 	virtual void process_data() override;
