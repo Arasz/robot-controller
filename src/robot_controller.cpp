@@ -29,17 +29,17 @@ robot_controller::robot_controller(std::string serial_device, std::string camera
 
 		_poll_controller.add(_serial_device);
 
-		// initialize server on default port
-		_server = new tcp_server();
-		_server->subscribe_data_ready_event(std::bind(&robot_controller::server_event_handler, this));
-
-		_poll_controller.add(_server);
-
 		// turn on camera app if path is given
 		if(!camera_script_path.empty())
 		{
 			_camera_app.run_script(camera_script_path);
 		}
+
+		// initialize server on default port
+		_server = new tcp_server();
+		_server->subscribe_data_ready_event(std::bind(&robot_controller::server_event_handler, this));
+
+		_poll_controller.add(_server);
 
 	}
 	catch(serial_port_exception& ex)
@@ -70,10 +70,10 @@ void robot_controller::start_controler()
 			{
 				_serial_device->receive_data(_serial_buffer);
 //
-				std::cout<<"Data from serial device ("<<_serial_buffer.size()<<")\n";
-				for(char&c : _serial_buffer)
-					std::cout<<c;
-				std::cout<<"\n";//
+				//std::cout<<"Data from serial device ("<<_serial_buffer.size()<<")\n";
+				//for(char&c : _serial_buffer)
+				//	std::cout<<c;
+				//std::cout<<"\n";//
 
 				_server->send_data(_serial_buffer);
 			}
@@ -82,10 +82,10 @@ void robot_controller::start_controler()
 			{
 				_server->receive_data(_server_buffer);
 //
-				std::cout<<"Data from server device ("<<_server_buffer.size()<<")\n";
-				for(char&c : _server_buffer)
-					std::cout<<c;
-				std::cout<<"\n";//
+				//std::cout<<"Data from server device ("<<_server_buffer.size()<<")\n";
+				//for(char&c : _server_buffer)
+				//	std::cout<<c;
+				//std::cout<<"\n";//
 
 				_serial_device->send_data(_server_buffer);
 			}

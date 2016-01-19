@@ -52,8 +52,9 @@ void poll_controler::remove(ifile_descriptor_owner* observer)
 void poll_controler::start_polling()
 {
 	construct_ufds_array();
-	_is_poll_thread_running = true;
 	_poll_thread = std::thread{ &poll_controler::poll_loop, this };
+	_is_poll_thread_running = true;;
+	//std::cerr<<">> "<<"Thread started\n";
 }
 /**
  * @brief Stops polling thread
@@ -81,7 +82,6 @@ void poll_controler::poll_loop()
 			std::cerr << ex.what();
 		}
 	}
-	std::cerr<<">> "<<"Exits from main poll loop\n";
 }
 
 /**

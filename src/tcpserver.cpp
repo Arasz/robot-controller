@@ -125,6 +125,7 @@ void tcp_server::accept_connection()
 
 	if(_client_socket.get_file_descriptor() < 0)
 		throw tcp_server_exception("Error when accepting connection.", strerror(errno));
+	std::clog<<"Client connected.";
 	_is_connected = true;
 }
 
@@ -241,6 +242,7 @@ void tcp_server::read_data()
 		//TODO Think about what we can do if connection with client is broken
 		if(bytes_count == 0)
 		{
+			//FIXME This solution makes poll thread exit AFTER new connection is established
 			std::clog<<"Client was disconnected.\n";
 			_is_connected = false;
 			std::clog<<"Listening for connection...\n";
