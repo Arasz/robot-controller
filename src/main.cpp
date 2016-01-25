@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	if(argc > 1) // first argument - program name
 	{
 		// there are command line arguments
-		std::string serial_device = "/dev/ttyS98";
+		std::string serial_device = "/dev/ttyAMA0";
 		std::string script_path = "";
 		int port = 22222;
 
@@ -62,6 +62,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
+		std::cout<<"Application will be started with default configuration. Try robot_controller -h for usage example.\n";
 		controler = std::move(std::unique_ptr<robot_controller>{new robot_controller()});
 	}
 
