@@ -11,7 +11,7 @@
 #include <mutex>
 #include <unistd.h>
 
-namespace mrobot
+namespace mr
 {
 	class file_descriptor_handler
 	{

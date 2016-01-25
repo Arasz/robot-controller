@@ -20,8 +20,9 @@
 #include <errno.h>
 #include <ifile_descriptor_owner.h>
 #include <iostream>
+#include "idata_ready.h"
 
-namespace mrobot
+namespace mr
 {
 using milliseconds = std::chrono::milliseconds;
 

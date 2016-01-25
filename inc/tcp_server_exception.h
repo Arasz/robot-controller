@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-namespace mrobot
+namespace mr
 {
 	class tcp_server_exception: public std::exception
 	{

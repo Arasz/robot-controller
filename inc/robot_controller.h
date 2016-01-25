@@ -17,7 +17,7 @@
 #include <iterator>
 #include <atomic>
 
-namespace mrobot
+namespace mr
 {
 	class robot_controller
 	{

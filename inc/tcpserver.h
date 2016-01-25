@@ -23,13 +23,14 @@
 #include "ifile_descriptor_owner.h"
 #include <mutex>
 #include "file_descriptor_handler.h"
+#include "idata_ready.h"
 
 
 // TODO Move client socket descriptor to his own class
-namespace mrobot
+namespace mr
 {
 
-class tcp_server: public ifile_descriptor_owner
+class tcp_server: public ifile_descriptor_owner, public idata_ready
 {
 	//using server_delegate = std::function<void()>;
 
@@ -49,7 +50,7 @@ public:
 	void subscribe_data_ready_event(delegate&& data_ready_handler);
 	void unsubscribe_data_ready_event();
 
-	virtual void process_data() override;
+	virtual void on_data_ready() override;
 	virtual file_descriptor_handler& get_file_descriptor_handler() override;
 	virtual bool is_file_descriptor_ready() override;
 
@@ -64,7 +65,6 @@ private:
 
 
 	bool _is_data_ready_event_subscirbed = false; /// indicates if data ready event is subscribed
-	//server_delegate _data_ready_handler; /// function object which holds data read event handler function
 
 	bool _is_connected = false; /// indicates if client is connected to the server
 

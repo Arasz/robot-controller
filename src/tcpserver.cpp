@@ -7,7 +7,7 @@
 
 #include "tcpserver.h"
 
-namespace mrobot
+namespace mr
 {
 /**
  * @brief Constructs server object listening on default port
@@ -132,7 +132,7 @@ void tcp_server::accept_connection()
 /**
  * Called when data is ready to process
  */
-void tcp_server::process_data()
+void tcp_server::on_data_ready()
 {
 	read_data();
 	if(_is_data_ready_event_subscirbed)

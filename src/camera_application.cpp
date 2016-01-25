@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mrobot
+namespace mr
 {
 
 camera_application::camera_application()

@@ -8,7 +8,7 @@
 #include "poll_controler.h"
 
 
-namespace mrobot
+namespace mr
 {
 
 poll_controler::poll_controler() :
@@ -86,8 +86,9 @@ void poll_controler::poll_loop()
 
 /**
  * @brief Polls file descriptors for data ready to read
+ * @throws poll_exception
  */
-void mrobot::poll_controler::poll_file_descriptors()
+void mr::poll_controler::poll_file_descriptors()
 {
 	if (_ufds_size == _observers.size())
 	{
@@ -104,8 +105,11 @@ void mrobot::poll_controler::poll_file_descriptors()
 				if (_ufds[i].revents & POLLIN)
 				{
 					// by construction element _ufds[i] has this same fd as _observers[i]
-					if(_observers[i]->is_file_descriptor_ready())
-						_observers[i]->process_data();
+					idata_ready* casted_pointer = dynamic_cast<idata_ready*>(_observers[i]); // Cast with dynamic cast ( runtime check)
+					if(casted_pointer != nullptr)
+						casted_pointer->on_data_ready();
+					else
+						throw  poll_exception{"Wrong casting"};
 					events_count--;
 				}
 			}
@@ -119,7 +123,7 @@ void mrobot::poll_controler::poll_file_descriptors()
 /**
  * @brief Constructs array off file descriptor structures used for polling. This method blocks when file descriptor is not ready.
  */
-void mrobot::poll_controler::construct_ufds_array()
+void mr::poll_controler::construct_ufds_array()
 {
 
 	_ufds_size = _observers.size();

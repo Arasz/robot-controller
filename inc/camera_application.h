@@ -16,7 +16,7 @@
 #include <sys/prctl.h>
 #include <sys/signal.h>
 
-namespace mrobot
+namespace mr
 {
 	class camera_application
 	{

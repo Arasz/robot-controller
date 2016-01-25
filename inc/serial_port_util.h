@@ -8,7 +8,7 @@
 #ifndef INC_SERIAL_PORT_UTIL_H_
 #define INC_SERIAL_PORT_UTIL_H_
 
-namespace mrobot
+namespace mr
 {
 enum class parity_option
 {

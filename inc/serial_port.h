@@ -27,15 +27,15 @@
 #include "ifile_descriptor_owner.h"
 #include "file_descriptor_handler.h"
 #include <mutex>
+#include "idata_ready.h"
 
-namespace mrobot
+namespace mr
 {
 	/**
 	 * @brief Class with allows easy serial port communication in linux.
 	 */
-	class serial_port: public ifile_descriptor_owner
+	class serial_port: public idata_ready, public ifile_descriptor_owner
 	{
-		//using serial_delegate = std::function<void()>;
 
 	public:
 
@@ -57,7 +57,7 @@ namespace mrobot
 
 		bool is_ready(){ return _is_opend&&_is_configured;}
 
-		virtual void process_data() override;
+		virtual void on_data_ready() override;
 		virtual file_descriptor_handler& get_file_descriptor_handler() override;
 		virtual bool is_file_descriptor_ready() override;
 
@@ -71,7 +71,6 @@ namespace mrobot
 
 
 		bool _is_data_ready_event_subscribed = false; /// indicates that data ready event is subscribed
-		delegate _data_ready_event_handler; /// function called when data ready event occurs
 
 		bool _is_opend = false;
 		bool _is_configured = false;

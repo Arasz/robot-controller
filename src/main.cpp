@@ -11,7 +11,7 @@
 
 int main(int argc, char* argv[])
 {
-	using namespace mrobot;
+	using namespace mr;
 
 	std::unique_ptr<robot_controller> controler;
 

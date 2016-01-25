@@ -7,7 +7,7 @@
  */
 #include "robot_controller.h"
 
-namespace mrobot
+namespace mr
 {
 robot_controller::robot_controller(): robot_controller("/dev/ttyS98")
 {

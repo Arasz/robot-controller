@@ -7,7 +7,7 @@
 
 #include "serial_port.h"
 
-namespace mrobot
+namespace mr
 {
 
 
@@ -197,7 +197,7 @@ void serial_port::subscribe_data_ready_event(delegate&& event_handler)
 	if(!_is_data_ready_event_subscribed)
 	{
 		 //_data_ready_event_handler=std::move(event_handler);
-		std::swap(event_handler, _data_ready_event_handler);
+		std::swap(event_handler, _data_ready_handler);
 		_is_data_ready_event_subscribed = true;
 	}
 }
@@ -264,11 +264,11 @@ void serial_port::receive_data(std::vector<char>& buffer)
 /**
  * @brief Called when data is ready to process
  */
-void serial_port::process_data()
+void serial_port::on_data_ready()
 {
 	read_data();
 	if(_is_data_ready_event_subscribed)
-		_data_ready_event_handler();
+		_data_ready_handler();
 }
 
 /**
