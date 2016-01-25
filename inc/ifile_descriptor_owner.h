@@ -17,11 +17,15 @@ namespace mrobot
 	 */
 	class ifile_descriptor_owner
 	{
+
 	public:
 		virtual void process_data()=0; /// process data which arrived to file
 		virtual file_descriptor_handler& get_file_descriptor_handler()=0; /// gets file descriptor
 		virtual bool is_file_descriptor_ready()=0; /// checks if file descriptor is acquired by class
 		virtual ~ifile_descriptor_owner() {};
+	protected:
+		using delegate = std::function<void()>;
+		delegate _data_ready_handler; /// function object which holds data read event handler functio
 	};
 }
 

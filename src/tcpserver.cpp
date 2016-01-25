@@ -125,7 +125,7 @@ void tcp_server::accept_connection()
 
 	if(_client_socket.get_file_descriptor() < 0)
 		throw tcp_server_exception("Error when accepting connection.", strerror(errno));
-	std::clog<<"Client connected.";
+	std::clog<<"Client connected.\n";
 	_is_connected = true;
 }
 
@@ -192,7 +192,7 @@ void tcp_server::send_data(const std::vector<char>& buffer)
  * @brief Assigns event handler called on data ready event
  * @param data_ready_handler function object with event handler
  */
-void tcp_server::subscribe_data_ready_event(server_delegate&& data_ready_handler)
+void tcp_server::subscribe_data_ready_event(delegate&& data_ready_handler)
 {
 	if(_is_data_ready_event_subscirbed == false)
 	{

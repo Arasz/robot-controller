@@ -192,7 +192,7 @@ void serial_port::send_data(const std::vector<char>& buffer)
  * @brief Subscribe data ready event
  * @param event_handler function which will handle data ready event
  */
-void serial_port::subscribe_data_ready_event(serial_delegate&& event_handler)
+void serial_port::subscribe_data_ready_event(delegate&& event_handler)
 {
 	if(!_is_data_ready_event_subscribed)
 	{

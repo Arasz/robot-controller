@@ -31,7 +31,7 @@ namespace mrobot
 
 class tcp_server: public ifile_descriptor_owner
 {
-	using server_delegate = std::function<void()>;
+	//using server_delegate = std::function<void()>;
 
 public:
 
@@ -46,7 +46,7 @@ public:
 	bool is_connected() const;
 	void reconnect();
 
-	void subscribe_data_ready_event(server_delegate&& data_ready_handler);
+	void subscribe_data_ready_event(delegate&& data_ready_handler);
 	void unsubscribe_data_ready_event();
 
 	virtual void process_data() override;
@@ -64,7 +64,7 @@ private:
 
 
 	bool _is_data_ready_event_subscirbed = false; /// indicates if data ready event is subscribed
-	server_delegate _data_ready_handler; /// function object which holds data read event handler function
+	//server_delegate _data_ready_handler; /// function object which holds data read event handler function
 
 	bool _is_connected = false; /// indicates if client is connected to the server
 

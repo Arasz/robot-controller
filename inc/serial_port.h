@@ -35,7 +35,7 @@ namespace mrobot
 	 */
 	class serial_port: public ifile_descriptor_owner
 	{
-		using serial_delegate = std::function<void()>;
+		//using serial_delegate = std::function<void()>;
 
 	public:
 
@@ -52,7 +52,7 @@ namespace mrobot
 		int is_data_ready();
 		void receive_data(std::vector<char>& buffer);
 
-		void subscribe_data_ready_event(serial_delegate&& event_handler);
+		void subscribe_data_ready_event(delegate&& event_handler);
 		void unsubscribe_data_ready_event();
 
 		bool is_ready(){ return _is_opend&&_is_configured;}
@@ -71,7 +71,7 @@ namespace mrobot
 
 
 		bool _is_data_ready_event_subscribed = false; /// indicates that data ready event is subscribed
-		serial_delegate _data_ready_event_handler; /// function called when data ready event occurs
+		delegate _data_ready_event_handler; /// function called when data ready event occurs
 
 		bool _is_opend = false;
 		bool _is_configured = false;

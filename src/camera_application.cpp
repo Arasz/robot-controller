@@ -40,8 +40,6 @@ void camera_application::run_script(string script_path)
 	{
 		// pid is equal zero - this code will be executed inside child process
 
-		_child_pid = getpid(); //FIXME this is unnecessary
-
 		prctl(PR_SET_PDEATHSIG, SIGHUP); // ask kernel to send SIGHTUP signal when parent dies (close child process)
 
 		// run camera script inside this process
