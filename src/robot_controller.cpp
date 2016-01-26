@@ -9,7 +9,11 @@
 
 namespace mr
 {
-robot_controller::robot_controller(): robot_controller("/dev/ttyS98")
+
+/**
+ * @brief Creates object with default parameters
+ */
+robot_controller::robot_controller(): robot_controller("/dev/ttyAMA0")
 {
 }
 
@@ -60,7 +64,10 @@ robot_controller::~robot_controller()
 	delete _server;
 }
 
-void robot_controller::start_controler()
+/**
+ *	@brief Starts control loop
+ */
+void robot_controller::start_controller()
 {
 		_poll_controller.start_polling();
 
@@ -69,24 +76,12 @@ void robot_controller::start_controler()
 			if(_serial_data_ready.exchange(false))
 			{
 				_serial_device->receive_data(_serial_buffer);
-//
-				//std::cout<<"Data from serial device ("<<_serial_buffer.size()<<")\n";
-				//for(char&c : _serial_buffer)
-				//	std::cout<<c;
-				//std::cout<<"\n";//
-
 				_server->send_data(_serial_buffer);
 			}
 
 			if(_server_data_ready.exchange(false))
 			{
 				_server->receive_data(_server_buffer);
-//
-				//std::cout<<"Data from server device ("<<_server_buffer.size()<<")\n";
-				//for(char&c : _server_buffer)
-				//	std::cout<<c;
-				//std::cout<<"\n";//
-
 				_serial_device->send_data(_server_buffer);
 			}
 		}
@@ -95,23 +90,23 @@ void robot_controller::start_controler()
 }
 
 /**
- * @brief Handles server data ready event
- * In this version only sends command to microcontroller
- * @param server
- * @param buffer
+ * @brief Handles data ready event from server
  */
 void robot_controller::server_event_handler()
 {
 	_server_data_ready.store(true);
 }
 
+/**
+ * @brief Handles data ready event from serial port
+ */
 void robot_controller::serial_event_handler()
 {
 	_serial_data_ready.store(true);
 }
 
 /**
- * @brief Starts application which will send video through wi-fi
+ * @brief Starts application which will send video through WiFi
  */
 void robot_controller::start_camera_app(std::string _camera_script_path)
 {

@@ -101,11 +101,6 @@ void tcp_server::reconnect()
 	}
 	// accept connection synchronously
 	accept_connection();
-
-	// wait for connection in another thread
-	//std::thread accept_connection(&tcp_server::accept_connection, this);
-	// detach thread - it will run in background without synchronization with main thread
-	//accept_connection.detach();
 }
 
 
@@ -120,7 +115,7 @@ void tcp_server::accept_connection()
 	unsigned int client_address_size = sizeof(_client_addres);
 	std::memset(&_client_addres, 0, client_address_size);
 
-
+	std::clog<<"Listening for connection...\n";
 	_client_socket = accept(_listen_socket.get_file_descriptor(), reinterpret_cast<sockaddr*>(&_client_addres), &client_address_size);
 
 	if(_client_socket.get_file_descriptor() < 0)
@@ -179,7 +174,6 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 
 		int written_bytes = send(_client_socket.get_file_descriptor(), _system_interaction_buffer, length, 0);
 
-		//TODO Change this behavior
 		if(written_bytes < 0)
 			throw tcp_server_exception{"Error when sending data", strerror(errno)};
 		if(written_bytes < length)
@@ -212,7 +206,7 @@ void tcp_server::unsubscribe_data_ready_event()
 }
 
 /**
- * @breif Swaps received data from input buffer to given buffer
+ * @brief Swaps received data from input buffer to given buffer
  * @param buffer buffer to which data will be copied
  */
 void tcp_server::receive_data(std::vector<char>& buffer)
@@ -224,7 +218,6 @@ void tcp_server::receive_data(std::vector<char>& buffer)
 
 /**
  * @brief Read data from client and write to class buffer
- * @return read bytes count
  * @throws tcp_server_exception
  */
 void tcp_server::read_data()
@@ -236,25 +229,20 @@ void tcp_server::read_data()
 		std::unique_lock<std::mutex> buffer_lock{_buffer_mutex, std::defer_lock};
 		std::lock(fd_lock, buffer_lock);
 
-		//std::memset(_system_interaction_buffer, 0, _buffer_size);
 
 		int bytes_count = recv(_client_socket.get_file_descriptor(), _system_interaction_buffer, _buffer_size, 0);
-		//TODO Think about what we can do if connection with client is broken
 		if(bytes_count == 0)
 		{
 			//FIXME This solution makes poll thread exit AFTER new connection is established
 			std::clog<<"Client was disconnected.\n";
 			_is_connected = false;
-			std::clog<<"Listening for connection...\n";
 			reconnect();
-			std::clog<<"Connected\n";
 			return;
 		}
 		if(bytes_count < 0)
 			throw tcp_server_exception{"Error reading data from socket", strerror(errno)};
 
 		// copy data from internal buffer to output buffer
-		//_received_data_buffer.clear();
 		for(int i = 0; i<bytes_count; i++)
 		{
 			_received_data_buffer.push_back(_system_interaction_buffer[i]);

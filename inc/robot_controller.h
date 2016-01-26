@@ -8,11 +8,11 @@
 #ifndef INC_ROBOT_CONTROLLER_H_
 #define INC_ROBOT_CONTROLLER_H_
 
+#include <poll_controller.h>
 #include <vector>
 #include "tcpserver.h"
 #include "serial_port.h"
 #include "camera_application.h"
-#include "poll_controler.h"
 #include <exception>
 #include <iterator>
 #include <atomic>
@@ -27,10 +27,10 @@ namespace mr
 		robot_controller(std::string serial_device, std::string camera_script_path="", int port = 22222);
 		virtual ~robot_controller();
 
-		void start_controler();
+		void start_controller();
 
 	private:
-		poll_controler _poll_controller; /// polls used file descriptors for data to read
+		poll_controller _poll_controller; /// polls used file descriptors for data to read
 
 		tcp_server* _server;
 		unsigned int _tcp_buffer_size = 255; /// size of tcp buffer

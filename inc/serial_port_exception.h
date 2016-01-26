@@ -14,12 +14,11 @@ namespace mr
 {
 
 /**
- * @brief  Represents exceptions during operation on files
+ * @brief  Represents exceptions during operations on serial device
  */
 class serial_port_exception: public std::exception
 {
 
-	//TODO: Add more parameters to file exception (fd, flags,...)
 public:
 	serial_port_exception(std::string message, std::string error_description = "None") :
 			_message(message), _error_description(error_description)

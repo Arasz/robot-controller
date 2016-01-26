@@ -6,6 +6,9 @@
 
 namespace mr
 {
+	/**
+	 * @brief Represents exceptions during server work
+	 */
 	class tcp_server_exception: public std::exception
 	{
 	public:

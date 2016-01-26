@@ -18,15 +18,13 @@
 
 namespace mr
 {
+	/**
+	 * @brief Runs application with is responsible for camera control and streaming
+	 */
 	class camera_application
 	{
 	public:
-		camera_application();
-		virtual ~camera_application();
-
 		void run_script(std::string script_path);
-	private:
-		pid_t _child_pid = 0;
 	};
 } /*namespace mrobot*/
 #endif /* INC_CAMERA_APPLICATION_H_ */

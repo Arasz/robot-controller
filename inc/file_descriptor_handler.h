@@ -13,6 +13,11 @@
 
 namespace mr
 {
+	/**
+	 * @brief Handler for file descriptors.
+	 * Is responsible for closing files, has mutex object connected with file
+	 * descriptor for easy multithread operations on files.
+	 */
 	class file_descriptor_handler
 	{
 		using mutex = std::mutex;
@@ -30,8 +35,19 @@ namespace mr
 			return *this;
 		}
 
+		/**
+		 * @brief Gets mutex binded with file descriptor
+		 * @return file descriptor mutex
+		 */
 		mutex& get_mutex() {return _fd_mutex;}
+		/**
+		 * @brief Gets file descriptor
+		 * @return file descriptor
+		 */
 		int get_file_descriptor() {return _file_descriptor;}
+		/**
+		 * @brief Closes file descriptor
+		 */
 		void close_file_descriptor(){ close(_file_descriptor); }
 
 	private:

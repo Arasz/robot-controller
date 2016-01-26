@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 
 	while(true)
 	{
-		controler->start_controler();
+		controler->start_controller();
 	}
 
 	return 0;

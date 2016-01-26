@@ -12,15 +12,11 @@ using namespace std;
 namespace mr
 {
 
-camera_application::camera_application()
-{
-
-}
-
-camera_application::~camera_application()
-{
-}
-
+/**
+ * @brief Starts camera application in child process
+ * Camera application should be closed when parent process dies
+ * @param script_path
+ */
 void camera_application::run_script(string script_path)
 {
 	// get parent process id

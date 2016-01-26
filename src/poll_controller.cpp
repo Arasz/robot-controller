@@ -5,26 +5,26 @@
  *      Author: rafal
  */
 
-#include "poll_controler.h"
+#include <poll_controller.h>
 
 
 namespace mr
 {
 
-poll_controler::poll_controler() :
-		poll_controler(-1, milliseconds(500))
+poll_controller::poll_controller() :
+		poll_controller(-1, milliseconds(500))
 {
 
 }
 
-poll_controler::poll_controler(int poll_timeout,
+poll_controller::poll_controller(int poll_timeout,
 		milliseconds poll_interval) :
 		_timeout(poll_timeout), _poll_interval(poll_interval)
 {
 
 }
 
-poll_controler::~poll_controler()
+poll_controller::~poll_controller()
 {
 	delete[] _ufds;
 	_is_poll_thread_running = false;
@@ -34,7 +34,7 @@ poll_controler::~poll_controler()
  * @brief Adds object to polling list
  * @param observer object which has file descriptor and want to know when data is ready to read
  */
-void poll_controler::add(ifile_descriptor_owner* observer)
+void poll_controller::add(ifile_descriptor_owner* observer)
 {
 	_observers.push_back(observer);
 }
@@ -42,24 +42,24 @@ void poll_controler::add(ifile_descriptor_owner* observer)
  * @brief Removes object from polling list
  * @param observer object which has file descriptor and want to know when data is ready to readr
  */
-void poll_controler::remove(ifile_descriptor_owner* observer)
+void poll_controller::remove(ifile_descriptor_owner* observer)
 {
 	_observers.erase(std::remove(_observers.begin(), _observers.end(), observer));
 }
 /**
  * @brief Starts polling in another thread
  */
-void poll_controler::start_polling()
+void poll_controller::start_polling()
 {
 	construct_ufds_array();
-	_poll_thread = std::thread{ &poll_controler::poll_loop, this };
+	_poll_thread = std::thread{ &poll_controller::poll_loop, this };
 	_is_poll_thread_running = true;;
 	//std::cerr<<">> "<<"Thread started\n";
 }
 /**
  * @brief Stops polling thread
  */
-void poll_controler::stop_polling()
+void poll_controller::stop_polling()
 {
 	_is_poll_thread_running = false;
 	_poll_thread.join();
@@ -69,7 +69,7 @@ void poll_controler::stop_polling()
  * @brief Main poll loop.
  * Sleeps for _poll_interval and then polls file descriptors
  */
-void poll_controler::poll_loop()
+void poll_controller::poll_loop()
 {
 	while (_is_poll_thread_running)
 	{
@@ -88,7 +88,7 @@ void poll_controler::poll_loop()
  * @brief Polls file descriptors for data ready to read
  * @throws poll_exception
  */
-void mr::poll_controler::poll_file_descriptors()
+void mr::poll_controller::poll_file_descriptors()
 {
 	if (_ufds_size == _observers.size())
 	{
@@ -123,7 +123,7 @@ void mr::poll_controler::poll_file_descriptors()
 /**
  * @brief Constructs array off file descriptor structures used for polling. This method blocks when file descriptor is not ready.
  */
-void mr::poll_controler::construct_ufds_array()
+void mr::poll_controller::construct_ufds_array()
 {
 
 	_ufds_size = _observers.size();

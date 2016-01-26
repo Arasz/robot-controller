@@ -5,8 +5,8 @@
  *      Author: rafal
  */
 
-#ifndef INC_POLL_CONTROLER_H_
-#define INC_POLL_CONTROLER_H_
+#ifndef INC_POLL_CONTROLLER_H_
+#define INC_POLL_CONTROLLER_H_
 
 #include <vector>
 #include <chrono>
@@ -29,12 +29,12 @@ using milliseconds = std::chrono::milliseconds;
 /**
  * @brief Stores list of file descriptor owners and informs them when data is ready to read
  */
-class poll_controler
+class poll_controller
 {
 public:
-	poll_controler();
-	poll_controler(int poll_timeout, milliseconds poll_interval);
-	virtual ~poll_controler();
+	poll_controller();
+	poll_controller(int poll_timeout, milliseconds poll_interval);
+	virtual ~poll_controller();
 
 	void add(ifile_descriptor_owner* observer);
 	void remove(ifile_descriptor_owner* observer);
@@ -64,7 +64,9 @@ private:
 };
 
 
-
+/**
+* @brief Represents exceptions during poll controller work
+ */
 class poll_exception: std::exception
 {
 public:
@@ -85,4 +87,4 @@ private:
 
 }
 
-#endif /* INC_POLL_CONTROLER_H_ */
+#endif /* INC_POLL_CONTROLLER_H_ */

@@ -26,13 +26,12 @@
 #include "idata_ready.h"
 
 
-// TODO Move client socket descriptor to his own class
+// TODO Create new class for connected clients
 namespace mr
 {
 
 class tcp_server: public ifile_descriptor_owner, public idata_ready
 {
-	//using server_delegate = std::function<void()>;
 
 public:
 
