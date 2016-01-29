@@ -64,8 +64,8 @@ namespace mr
 	private:
 
 		void read_data();
-		const int _buffer_size = 255; /// data buffer size
-		char _system_interaction_buffer[255]{}; /// data buffer which will be passed to system functions
+		const int _buffer_size = 50; /// data buffer size
+		char _system_interaction_buffer[50]{}; /// data buffer which will be passed to system functions
 		std::vector<char> _received_data_buffer; /// data buffer whith received data
 		std::mutex _buffer_mutex;
 

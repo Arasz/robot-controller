@@ -67,8 +67,8 @@ private:
 
 	bool _is_connected = false; /// indicates if client is connected to the server
 
-	const size_t _buffer_size = 255; /// communication buffer size
-	char _system_interaction_buffer[255]{}; /// data buffer which will be passed to system functions
+	const size_t _buffer_size = 50; /// communication buffer size
+	char _system_interaction_buffer[50]{}; /// data buffer which will be passed to system functions
 	std::vector<char> _received_data_buffer; ///
 	std::mutex _buffer_mutex;
 

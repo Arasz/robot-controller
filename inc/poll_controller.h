@@ -58,7 +58,7 @@ private:
 
 	int _timeout{-1}; /// time in milliseconds after which poll function() terminates (if negative function never terminates)
 
-	milliseconds _poll_interval{ 500 }; /// time after which polling thread will poll file descriptors
+	milliseconds _poll_interval{0}; /// time after which polling thread will poll file descriptors
 
 	pollfd* _ufds{nullptr}; /// array of structures representing file descriptors used in file descriptors polling
 };

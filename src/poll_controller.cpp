@@ -73,13 +73,13 @@ void poll_controller::poll_loop()
 {
 	while (_is_poll_thread_running)
 	{
-		std::this_thread::sleep_for(_poll_interval);
 		try
 		{
+			//std::this_thread::sleep_for(_poll_interval);
 			poll_file_descriptors();
 		} catch (poll_exception& ex)
 		{
-			std::cerr << ex.what();
+			std::cerr<< ex.what();
 		}
 	}
 }
