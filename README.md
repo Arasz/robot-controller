@@ -1,1 +1,2 @@
-This application: will mediate between android  application (which can control robot through wi-fi)  and microcontroler, can control application which sends video through internet from usb camera.  There are two main classes: tcp_server used for communication over internet with android phone and serial_port which communicates with microcontroller over UART.
+This application is a bridge between android  application (which can control robot through wi-fi)  and microcontroler with capability to control application which sends video through internet from usb camera.  
+
