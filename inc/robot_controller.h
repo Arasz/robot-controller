@@ -46,6 +46,9 @@ namespace mr
 
 		camera_application _camera_app;
 		void start_camera_app(std::string _camera_script_path);
+
+//		uint64_t _serial_to_server = 0;
+//		uint64_t _server_to_serial = 0;
 	};
 }
 

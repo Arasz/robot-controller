@@ -84,6 +84,9 @@ void robot_controller::start_controller()
 //					count++;
 //				}
 //				std::clog<<"\nCount: "<<count<<"\n";
+//				std::clog<<">Serial to server counter: "<<++_serial_to_server<<"\n";
+				//FIXME Add new line character - ugly fix
+				_serial_buffer.push_back('\n');
 				_server->send_data(_serial_buffer);
 			}
 
@@ -98,6 +101,7 @@ void robot_controller::start_controller()
 //					count++;
 //				}
 //				std::clog<<"\nCount: "<<count<<"\n";
+//				std::clog<<"+Server to serial counter: "<<++_server_to_serial<<"\n";
 				_serial_device->send_data(_server_buffer);
 			}
 		}
