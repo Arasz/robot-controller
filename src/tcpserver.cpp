@@ -143,19 +143,10 @@ file_descriptor_handler& tcp_server::get_file_descriptor_handler()
 	return _client_socket;
 }
 
-/**
- * @brief Checks if file descriptor is acquired and can be used
- * @return true if file descriptor is ready to use
- */
-bool tcp_server::is_file_descriptor_ready()
-{
-	return is_connected();
-}
 
 /**
  * @brief Send data to connected client
  * @param buffer data buffer
- * @param length data buffer length in bytes
  * @throws tcp_server_exception
  */
 void tcp_server::send_data(const std::vector<char>& buffer)
@@ -173,6 +164,7 @@ void tcp_server::send_data(const std::vector<char>& buffer)
 		}
 
 		int written_bytes = send(_client_socket.get_file_descriptor(), _system_interaction_buffer, length, 0);
+
 
 		if(written_bytes < 0)
 			throw tcp_server_exception{"Error when sending data", strerror(errno)};

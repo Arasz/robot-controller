@@ -279,14 +279,7 @@ file_descriptor_handler& serial_port::get_file_descriptor_handler()
 {
 	return _serial_device;
 }
-/**
- * @brief Checks if file descriptor is acquired and can be used
- * @return true if file descriptor is ready to use
- */
-bool serial_port::is_file_descriptor_ready()
-{
-	return is_ready();
-}
+
 
 } /* namespace mrobot */
 

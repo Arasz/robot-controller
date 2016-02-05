@@ -136,7 +136,7 @@ void mr::poll_controller::construct_ufds_array()
 	int i = 0;
 	for (auto observer : _observers)
 	{
-		while(!observer->is_file_descriptor_ready());
+		while(!observer->get_file_descriptor_handler().is_file_descriptor_ready());
 		_ufds[i].fd = observer->get_file_descriptor_handler().get_file_descriptor();
 		_ufds[i++].events = POLLIN; // return from poll() when data is ready to read on fd
 	}

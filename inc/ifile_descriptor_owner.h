@@ -21,7 +21,7 @@ namespace mr
 	public:
 		virtual file_descriptor_handler& get_file_descriptor_handler()=0; /// gets file descriptor
 		//FIXME Move is_file_descriptor_ready() to the file_descriptor_handler_class
-		virtual bool is_file_descriptor_ready()=0; /// checks if file descriptor is acquired by class
+		//virtual bool is_file_descriptor_ready()=0; /// checks if file descriptor is acquired by class
 		virtual ~ifile_descriptor_owner() {};
 	};
 }

@@ -59,7 +59,6 @@ namespace mr
 
 		virtual void on_data_ready() override;
 		virtual file_descriptor_handler& get_file_descriptor_handler() override;
-		virtual bool is_file_descriptor_ready() override;
 
 	private:
 

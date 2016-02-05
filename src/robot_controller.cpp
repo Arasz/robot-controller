@@ -76,14 +76,14 @@ void robot_controller::start_controller()
 			if(_serial_data_ready.exchange(false))
 			{
 				_serial_device->receive_data(_serial_buffer);
-/*				int count = 0;
-				std::clog<<"Serial->Server: \n";
-				for(char& c:_serial_buffer)
-				{
-					std::clog<<c;
-					count++;
-				}
-				std::clog<<"\nCount: "<<count<<"\n";*/
+//				int count = 0;
+//				std::clog<<"Serial->Server: \n";
+//				for(char& c:_serial_buffer)
+//				{
+//					std::clog<<c;
+//					count++;
+//				}
+//				std::clog<<"\nCount: "<<count<<"\n";
 				_server->send_data(_serial_buffer);
 			}
 

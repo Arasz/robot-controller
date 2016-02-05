@@ -45,6 +45,12 @@ namespace mr
 		 * @return file descriptor
 		 */
 		int get_file_descriptor() {return _file_descriptor;}
+
+		/**
+		 * @brief Checks if file descriptor is acquired and can be used
+		 * @return true if file descriptor is ready to use
+		 */
+		bool is_file_descriptor_ready() { return (_file_descriptor>=0)?true:false; }
 		/**
 		 * @brief Closes file descriptor
 		 */
